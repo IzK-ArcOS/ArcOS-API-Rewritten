@@ -1,0 +1,15 @@
+port: 3333
+name: "ArcAPI"
+
+filesystem:
+  userspace_size: 2147483648  # 2 GiB
+
+security:
+  auth_code: null
+  token_lifetime: 604800  # 1 week in seconds
+
+storage:
+  root: "data"
+  database: "arcos.sqlite"
+  filesystem: "filesystem"
+  template: "template"  # to disable templates set this to `null`
