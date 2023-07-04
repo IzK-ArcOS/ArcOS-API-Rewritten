@@ -16,6 +16,7 @@ if not os.path.isfile("config.yaml"):
 with open("config.yaml") as f:
     shared.configuration = yaml.safe_load(f)
 
+os.makedirs("data", exist_ok=True)
 shared.database = database.Database(os.path.join("data", "arcos.sqlite"))
 shared.filesystem = filesystem.Filesystem(os.path.join("data", "filesystem"),
                                           os.path.join("data", "template"),
