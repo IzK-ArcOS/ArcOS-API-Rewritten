@@ -1,4 +1,6 @@
+import magic
 import os
+import shutil
 
 
 class Filesystem:
@@ -16,13 +18,51 @@ class Filesystem:
     def mkdir(self, userspace: int, path: str):
         os.mkdir(os.path.join(self._root, str(userspace), path))
 
+    def listdir(self, userspace: int, path: str):
+        path = os.path.join(self._root, str(userspace), path)
+
+        files, directories = [], []
+
+        for felder in os.listdir(path):
+            fullpath = os.path.join(path, felder)
+            if os.path.isfile(fullpath):
+                files.append(fullpath)
+            else:
+                directories.append(fullpath)
+
+        return files, directories
+
     def write(self, userspace: int, path: str, data: bytes):
         with open(os.path.join(self._root, str(userspace), path), 'wb') as f:
             f.write(data)
 
+    def delete(self, userspace: int, path: str):
+        shutil.rmtree(os.path.join(self._root, str(userspace), path))
+
+    def move(self, userspace: int, source: str, destination: str):
+        base_path = os.path.join(self._root, str(userspace))
+        shutil.move(os.path.join(base_path, source),
+                    os.path.join(base_path, destination))
+
     def read(self, userspace: int, path: str) -> bytes:
         with open(os.path.join(self._root, str(userspace), path), 'rb') as f:
             return f.read()
+
+    def get_size(self, userspace: int, path: str) -> int:
+        return sum(sum(os.path.getsize(os.path.join(dirpath, file)) for file in files) for dirpath, files, _ in os.walk(walk_path)) \
+            if os.path.isdir(walk_path := os.path.join(self._root, str(userspace), path)) else os.path.getsize(os.path.join(walk_path))
+
+    def get_mime(self, userspace: int, path: str) -> str:
+        return magic.from_file(os.path.join(self._root, str(userspace), path), mime=True)
+
+    def get_tree(self, userspace: int, path: str):
+        base_path = os.path.join(self._root, str(userspace))
+
+        paths = []
+        for dirpath, _, filepaths in os.walk(os.path.join(base_path, path)):
+            paths.extend([os.path.join(dirpath[len(base_path) + 1:], filepath) for filepath in filepaths])
+
+        return paths
 
     def deploy_template(self, userspace: int, path: str):
         if self._template is None:
@@ -39,3 +79,12 @@ class Filesystem:
     def create_userspace(self, userspace: int):
         os.mkdir(os.path.join(self._root, str(userspace)))
         self.deploy_template(userspace, '.')
+        
+    def get_basepath(self, userspace: int):
+        return os.path.join(self._root, str(userspace))
+
+    def get_userspace_size(self):
+        return self._userspace_size
+
+    def copy(self, userspace: int, source: str, target: str):
+        self.write(userspace, target, self.read(userspace, source))

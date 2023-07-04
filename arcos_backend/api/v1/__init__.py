@@ -1,3 +1,4 @@
+import base64
 import json
 from typing import Annotated
 
@@ -131,4 +132,169 @@ def users_get():
     return {
         'data': user_infos,
         'valid': True
+    }
+
+
+@router.get('/fs/quota')
+def fs_quota(authorization: Annotated[str, Header()]):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    used = shared.filesystem.get_size(user_id, '.')
+
+    return {
+        'data': {
+            'username': shared.database.get_username(user_id),
+            'max': (size := shared.filesystem.get_userspace_size()),
+            'used': used,
+            'free': size - used
+        },
+        'valid': True
+    }
+
+
+@router.get('/fs/dir/get')
+def fs_dir_get(authorization: Annotated[str, Header()], path: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    path = base64.b64decode(path).decode('utf-8')
+
+    files, directories = shared.filesystem.listdir(user_id, path)
+
+    base_path = shared.filesystem.get_basepath(user_id)
+
+    _name = lambda s: s[s.rfind('/') + 1:]  # NOQA E731
+    _scope = lambda s: s[len(base_path)+1:]  # NOQA E731
+
+    return {
+        'valid': True,
+        'data': {
+            'name': _name(path),
+            'scopedPath': path,
+            'files': [{
+                'filename': _name(file),
+                'scopedPath': (scoped := _scope(file)),
+                'size': shared.filesystem.get_size(user_id, scoped),
+                'mime': shared.filesystem.get_mime(user_id, scoped)
+            } for file in files],
+            'directories': [{
+                'name': _name(directory),
+                'scopedPath': _scope(directory)
+            } for directory in directories]
+        }
+    }
+
+
+@router.get('/fs/dir/create')
+def fs_dir_create(authorization: Annotated[str, Header()], path: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    path = base64.b64decode(path).decode('utf-8')
+
+    shared.filesystem.mkdir(user_id, path)
+
+    return {'valid': True}
+
+
+@router.get('/fs/file/get')
+def fs_file_get(response: Response, authorization: Annotated[str, Header()], path: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    path = base64.b64decode(path).decode('utf-8')
+
+    response.headers['Content-Type'] = shared.filesystem.get_mime(user_id, path)
+    response.body = shared.filesystem.read(user_id, path)
+    response.status_code = 200
+
+    return response
+
+
+@router.post('/fs/file/write')
+async def fs_file_write(authorization: Annotated[str, Header()], path: str, request: Request):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    path = base64.b64decode(path).decode('utf-8')
+    file_data = await request.body()
+
+    if shared.filesystem.get_size(user_id, '.') + len(file_data) > shared.filesystem.get_userspace_size():
+        raise HTTPException(status_code=409, detail="there's not enough space free on your account")
+
+    shared.filesystem.write(user_id, path, file_data)
+
+
+@router.get('/fs/cp')
+def fs_time_copy(authorization: Annotated[str, Header()], path: str, target: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    _b64 = lambda s: base64.b64decode(s).decode('utf-8')
+
+    shared.filesystem.copy(user_id, _b64(path), _b64(target))
+
+
+@router.get('/fs/rm')
+def fs_rm(authorization: Annotated[str, Header()], path: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    path = base64.b64decode(path).decode('utf-8')
+
+    shared.filesystem.delete(user_id, path)
+
+
+@router.get('/fs/rename')
+def fs_item_rename(authorization: Annotated[str, Header()], oldpath: str, newpath: str):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    _b64 = lambda s: base64.b64decode(s).decode('utf-8')
+
+    shared.filesystem.move(user_id, _b64(oldpath), _b64(newpath))
+
+
+@router.get('/fs/tree')
+def fs_tree(authorization: Annotated[str, Header()]):
+    if not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=422, detail="invalid authorization method")
+    token = authorization[7:]
+    user_id = shared.database.validate_token(token)
+    if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    paths = shared.filesystem.get_tree(user_id, ".")
+
+    return {
+        'valid': True,
+        'data': [{
+            'scopedPath': path,
+            'mime': shared.filesystem.get_mime(user_id, path),
+            'filename': path[path.rfind('/') + 1:]
+        } for path in paths]
     }
