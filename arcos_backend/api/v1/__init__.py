@@ -11,7 +11,7 @@ from ... import _shared as shared
 router = APIRouter()
 
 
-@router.get(f'/auth')
+@router.get('/auth')
 def auth(authorization: Annotated[str, Header()]):
     if not authorization.startswith('Basic '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -22,7 +22,7 @@ def auth(authorization: Annotated[str, Header()]):
     return {'data': {'username': username, 'token': token}, 'valid': True, "error": {"title": "", "message": ""}}
 
 
-@router.get(f'/logoff')
+@router.get('/logoff')
 def logoff(authorization: Annotated[str, Header()]):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -31,7 +31,7 @@ def logoff(authorization: Annotated[str, Header()]):
     shared.database.expire_token(token)
 
 
-@router.get(f'/user/create')
+@router.get('/user/create')
 def user_create(authorization: Annotated[str, Header()]):
     if not authorization.startswith('Basic '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -44,7 +44,7 @@ def user_create(authorization: Annotated[str, Header()]):
     return {'error': {'valid': True}}
 
 
-@router.get(f'/user/properties')
+@router.get('/user/properties')
 def user_properties(authorization: Annotated[str, Header()]):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -57,7 +57,7 @@ def user_properties(authorization: Annotated[str, Header()]):
     return {**user_properties, 'valid': True, 'statusCode': 200}
 
 
-@router.post(f'/user/properties/update')
+@router.post('/user/properties/update')
 async def user_properties_update(authorization: Annotated[str, Header()],  request: Request):
     properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
     if not authorization.startswith('Bearer '):
@@ -69,7 +69,7 @@ async def user_properties_update(authorization: Annotated[str, Header()],  reque
     shared.database.set_user_properties(user_id, properties)
 
 
-@router.get(f'/user/delete')
+@router.get('/user/delete')
 def user_delete(authorization: Annotated[str, Header()]):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -80,7 +80,7 @@ def user_delete(authorization: Annotated[str, Header()]):
     shared.database.delete_user(user_id)
 
 
-@router.get(f'/user/rename')
+@router.get('/user/rename')
 def user_rename(authorization: Annotated[str, Header()], newname: str):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -91,7 +91,7 @@ def user_rename(authorization: Annotated[str, Header()], newname: str):
     shared.database.rename_user(user_id, newname)
 
 
-@router.get(f'/user/changepswd')
+@router.get('/user/changepswd')
 def user_changepswd(authorization: Annotated[str, Header()], new: str):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
@@ -102,7 +102,7 @@ def user_changepswd(authorization: Annotated[str, Header()], new: str):
     shared.database.set_user_password(user_id, new)
 
     
-@router.get(f'/connect')
+@router.get('/connect')
 def connect():
     return {
         'platform': f"ArcOS @ {shared.configuration['name']}",
@@ -113,7 +113,7 @@ def connect():
     }
 
 
-@router.get(f'/users/get')
+@router.get('/users/get')
 def users_get():
     user_ids = shared.database.get_user_ids()
     user_infos = [shared.database.get_user_info(user_id) for user_id in user_ids]
