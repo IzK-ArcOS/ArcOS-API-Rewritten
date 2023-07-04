@@ -1,4 +1,5 @@
 import json
+import os.path
 import sqlite3
 import threading
 import time
@@ -16,6 +17,9 @@ class Database:
     _lock: threading.Lock
 
     def __init__(self, db_path: str):
+        if not os.path.isfile(db_path):
+            with open(db_path, 'wb'): pass  # NOQA E701
+
         self._connection = sqlite3.connect(db_path, check_same_thread=False)
         self._lock = threading.Lock()
 
