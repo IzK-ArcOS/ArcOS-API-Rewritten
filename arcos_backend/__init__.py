@@ -16,10 +16,11 @@ if not os.path.isfile("config.yaml"):
 with open("config.yaml") as f:
     shared.configuration = yaml.safe_load(f)
 
-os.makedirs("data", exist_ok=True)
-shared.database = database.Database(os.path.join("data", "arcos.sqlite"))
-shared.filesystem = filesystem.Filesystem(os.path.join("data", "filesystem"),
-                                          os.path.join("data", "template"),
+storage_cfg = shared.configuration['storage']
+os.makedirs(storage_cfg['root'], exist_ok=True)
+shared.database = database.Database(os.path.join(storage_cfg['root'], storage_cfg['database']))
+shared.filesystem = filesystem.Filesystem(os.path.join(storage_cfg['root'], storage_cfg['filesystem']),
+                                          os.path.join(storage_cfg['root'], storage_cfg['template']) if storage_cfg['template'] is not None else None,
                                           shared.configuration['filesystem']['userspace_size'])
 
 app = FastAPI(title=shared.configuration['name'], version="0.0.1")
