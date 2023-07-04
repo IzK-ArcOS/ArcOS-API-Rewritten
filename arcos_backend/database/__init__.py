@@ -65,6 +65,10 @@ class Database:
         with self._lock:
             return self._connection.execute("SELECT ID FROM Users WHERE Name=(?)", (username,)).fetchone()[0]
 
+    def get_username(self, user_id: int) -> int:
+        with self._lock:
+            return self._connection.execute("SELECT Name FROM Users WHERE ID=(?)", (user_id,)).fetchone()[0]
+
     def get_user_info(self, user_id: int) -> dict:
         with self._lock:
             information = self._connection.execute("SELECT Name, Properties, ProfilePicture, IsEnabled, IsAdmin FROM Users WHERE ID=(?)", (user_id,)).fetchone()
