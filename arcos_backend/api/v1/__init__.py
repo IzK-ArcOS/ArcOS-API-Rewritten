@@ -59,12 +59,13 @@ def user_properties(authorization: Annotated[str, Header()]):
 
 @router.post('/user/properties/update')
 async def user_properties_update(authorization: Annotated[str, Header()],  request: Request):
-    properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
     token = authorization[7:]
     user_id = shared.database.validate_token(token)
     if user_id is None: raise HTTPException(status_code=403)  # NOQA E701
+
+    properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
 
     shared.database.set_user_properties(user_id, properties)
 
