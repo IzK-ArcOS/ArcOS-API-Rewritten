@@ -1,7 +1,7 @@
 import json
 from typing import Annotated
 
-from fastapi import Header, HTTPException, APIRouter
+from fastapi import Header, HTTPException, APIRouter, Response
 from starlette.requests import Request
 
 from ._auth import parse_basic
