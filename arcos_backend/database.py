@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os.path
 import sqlite3
@@ -5,11 +6,16 @@ import threading
 import time
 import uuid
 
-from ._utils import hash_salty
-from .._validation import validate_username
+from ._validation import validate_username
 
 
-DEFAULT_PROPERTIES = {'sh': {'taskbar': {'centered': False, 'labels': False, 'pos': '', 'docked': True}, 'window': {'lefttb': False, 'bigtb': True, 'buttons': 'default'}, 'desktop': {'wallpaper': 'img04', 'icons': True, 'theme': 'dark', 'sharp': False, 'accent': '70D6FF'}, 'start': {'small': True}, 'anim': True, 'noQuickSettings': False, 'noGlass': False, 'userThemes': {}}, 'acc': {'enabled': True, 'admin': False, 'profilePicture': 3}, 'volume': {'level': 100, 'muted': False}, 'disabledApps': [], 'autoRun': [], 'autoLoads': [], 'askPresist': True, 'devmode': False, 'appdata': {}}
+with open(os.path.join("arcos_backend", "assets", "default", "properties.default.json")) as f:
+    DEFAULT_PROPERTIES = json.load(f)
+
+
+def hash_salty(password: str) -> str:
+    _enc = lambda s: s.encode('utf-8')  # NOQA E731
+    return hashlib.sha512(_enc(hashlib.shake_128(_enc(password)).hexdigest(32) + password), usedforsecurity=True).hexdigest()
 
 
 class Database:

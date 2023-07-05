@@ -1,0 +1,44 @@
+{
+  "acc": {
+    "admin": false,
+    "enabled": true,
+    "profilePicture": 3
+  },
+  "appdata": {},
+  "askPresist": true,
+  "autoLoads": [],
+  "autoRun": [],
+  "devmode": false,
+  "disabledApps": [],
+  "sh": {
+    "anim": true,
+    "desktop": {
+      "accent": "70D6FF",
+      "icons": true,
+      "sharp": false,
+      "theme": "dark",
+      "wallpaper": "img04"
+    },
+    "noGlass": false,
+    "noQuickSettings": false,
+    "start": {
+      "small": true
+    },
+    "taskbar": {
+      "centered": false,
+      "docked": true,
+      "labels": false,
+      "pos": ""
+    },
+    "userThemes": {},
+    "window": {
+      "bigtb": true,
+      "buttons": "default",
+      "lefttb": false
+    }
+  },
+  "volume": {
+    "level": 100,
+    "muted": false
+  }
+}

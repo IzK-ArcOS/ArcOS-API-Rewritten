@@ -49,8 +49,10 @@ class Filesystem:
             return f.read()
 
     def get_size(self, userspace: int, path: str) -> int:
-        return sum(sum(os.path.getsize(os.path.join(dirpath, file)) for file in files) for dirpath, files, _ in os.walk(walk_path)) \
-            if os.path.isdir(walk_path := os.path.join(self._root, str(userspace), path)) else os.path.getsize(os.path.join(walk_path))
+        return sum(sum(os.path.getsize(os.path.join(dirpath, file)) for file in files) for dirpath, files, _ in
+                   os.walk(walk_path)) \
+            if os.path.isdir(walk_path := os.path.join(self._root, str(userspace), path)) else os.path.getsize(
+            os.path.join(walk_path))
 
     def get_mime(self, userspace: int, path: str) -> str:
         return magic.from_file(os.path.join(self._root, str(userspace), path), mime=True)
@@ -79,7 +81,7 @@ class Filesystem:
     def create_userspace(self, userspace: int):
         os.mkdir(os.path.join(self._root, str(userspace)))
         self.deploy_template(userspace, '.')
-        
+
     def get_basepath(self, userspace: int):
         return os.path.join(self._root, str(userspace))
 
