@@ -14,8 +14,8 @@ with open(os.path.join("arcos_backend", "assets", "default", "properties.default
 
 
 def hash_salty(password: str) -> str:
-    _enc = lambda s: s.encode('utf-8')  # NOQA E731
-    return hashlib.sha512(_enc(hashlib.shake_128(_enc(password)).hexdigest(32) + password), usedforsecurity=True).hexdigest()
+    salt = hashlib.shake_128(password.encode('utf-8')).hexdigest(32)
+    return hashlib.sha512((salt + password).encode('utf-8'), usedforsecurity=True).hexdigest()
 
 
 class Database:

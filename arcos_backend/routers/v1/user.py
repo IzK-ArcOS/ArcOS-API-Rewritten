@@ -1,7 +1,7 @@
 import json
 from typing import Annotated
 
-from fastapi import APIRouter, Header, Depends
+from fastapi import APIRouter, Header
 from starlette.requests import Request
 
 from ._auth import basic, bearer
@@ -35,6 +35,7 @@ def user_properties(authorization: Annotated[str, Header()]):
 async def user_properties_update(authorization: Annotated[str, Header()],  request: Request):
     user_id = bearer(authorization)
 
+    # plz tell izaak to set header `content-type` to `application/json` in the frontend, this is truly awful
     properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
 
     db.set_user_properties(user_id, properties)
