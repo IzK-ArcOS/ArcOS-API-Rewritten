@@ -27,9 +27,6 @@ class Token(TokenBase):
 class UserBase(BaseModel):
     username: str
     properties: dict = USER_DEFAULT_PROPERTIES
-    profile_picture: str | int = 3
-    is_enabled: bool = True
-    is_admin: bool = False
 
 
 class UserCreate(UserBase):
