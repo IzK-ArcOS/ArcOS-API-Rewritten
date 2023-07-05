@@ -13,12 +13,14 @@ def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
     if not validate_credentials(db, owner.username, token.password):
         raise ValueError("invalid credentials")
 
-    db.add(db_token := models.Token(
+    db_token = models.Token(
         value=str(uuid.uuid4()),
         owner_id=owner.id,
         lifetime=token.lifetime,
         creation_time=datetime.fromtimestamp(time.time())
-    ))
+    )
+
+    db.add(db_token)
     db.commit()
     db.refresh(db_token)
 
@@ -27,8 +29,13 @@ def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
     return db_token
 
 
-def find_token(db: Session, value: str) -> models.Token | None:
-    return db.get(models.Token, value)
+def find_token(db: Session, value: str) -> models.Token:
+    token = db.get(models.Token, value)
+
+    if token is None:
+        raise LookupError(f"unknown token (value: {value})")
+
+    return token
 
 
 def expire_token(db: Session, token: models.Token):
@@ -36,9 +43,14 @@ def expire_token(db: Session, token: models.Token):
     db.commit()
 
 
-def validate_token(db: Session, token: models.Token) -> models.User | None:
+def validate_token(db: Session, token: models.Token) -> models.User:
     if token.creation_time.timestamp() + token.lifetime < time.time():
         expire_token(db, token)
-        return None
+        raise ValueError("token has expired")
 
-    return db.get(models.User, token.owner_id)
+    user = db.get(models.User, token.owner_id)
+
+    if user is None:
+        raise LookupError("token is owned by an invalid user")
+
+    return user

@@ -29,7 +29,10 @@ def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
 
 @router.get('/dir/get')
 def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    files, directories = fs.listdir(user.id, path)
+    try:
+        files, directories = fs.listdir(user.id, path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
     base_path = fs.get_basepath(user.id)
 
@@ -57,7 +60,10 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
 @router.get('/dir/create')
 def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    fs.mkdir(user.id, path)
+    try:
+        fs.mkdir(user.id, path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
     return {'valid': True}
 
@@ -67,7 +73,10 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
     path = base64.b64decode(path).decode('utf-8')
 
     response.headers['Content-Type'] = fs.get_mime(user.id, path)
-    response.body = fs.read(user.id, path)
+    try:
+        response.body = fs.read(user.id, path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
     response.status_code = 200
 
     return response
@@ -75,37 +84,51 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 
 @router.post('/file/write')
 async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    path = base64.b64decode(path).decode('utf-8')
     file_data = await request.body()
 
     if fs.get_size(user.id, '.') + len(file_data) > fs.get_userspace_size():
         raise HTTPException(status_code=409, detail="there's not enough space free on your account")
 
-    fs.write(user.id, path, file_data)
+    try:
+        fs.write(user.id, path, file_data)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/cp')
 def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)], target: str):
     target = base64.b64decode(target).decode('utf-8')
 
-    fs.copy(user.id, path, target)
+    try:
+        fs.copy(user.id, path, target)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/rm')
 def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    fs.delete(user.id, path)
+    try:
+        fs.delete(user.id, path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/rename')
 def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
     _b64 = lambda s: base64.b64decode(s).decode('utf-8')
 
-    fs.move(user.id, _b64(oldpath), _b64(newpath))
+    try:
+        fs.move(user.id, _b64(oldpath), _b64(newpath))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/tree')
 def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
-    paths = fs.get_tree(user.id, ".")
+    try:
+        paths = fs.get_tree(user.id, ".")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="path not found")
 
     return {
         'valid': True,

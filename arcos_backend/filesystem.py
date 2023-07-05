@@ -90,3 +90,6 @@ class Filesystem:
 
     def copy(self, userspace: int, source: str, target: str):
         self.write(userspace, target, self.read(userspace, source))
+
+    def validate_path(self, userspace: int, path: str) -> bool:
+        return os.path.exists(os.path.join(self._root, str(userspace), path))

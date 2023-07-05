@@ -1,7 +1,7 @@
 import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
@@ -19,7 +19,10 @@ router = APIRouter()
 def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
-    user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
+    try:
+        user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid username")
     fs.create_userspace(user.id)
 
     return {'error': {'valid': True}}
@@ -32,7 +35,10 @@ def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
 
 @router.post('/properties/update')
 async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
-    properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
+    try:
+        properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=422)
 
     user_db.update_user_properties(db, user, properties)
 

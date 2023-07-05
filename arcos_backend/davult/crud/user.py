@@ -15,7 +15,9 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     del user['password']
     user['properties'] = dict2json(user['properties'])
 
-    db.add(db_user := models.User(**user, hashed_password=hashed_password))
+    db_user = models.User(**user, hashed_password=hashed_password)
+
+    db.add(db_user)
     db.commit()
     db.refresh(db_user)
 

@@ -18,11 +18,16 @@ def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[s
 
     user = user_db.find_user(db, username)
 
-    token = token_db.generate_token(db, schemas.TokenCreate(
-        owner_id=user.id,
-        password=password,
-        lifetime=cfg['security']['token_lifetime']
-    ))
+    try:
+        token = token_db.generate_token(db, schemas.TokenCreate(
+            owner_id=user.id,
+            password=password,
+            lifetime=cfg['security']['token_lifetime']
+        ))
+    except LookupError:
+        raise HTTPException(status_code=404, detail="user not found")
+    except ValueError:
+        raise HTTPException(status_code=403, detail="invalid credentials")
 
     return {'data': {'username': user.username, 'token': token.value}, 'valid': True, "error": {"title": "", "message": ""}}
 
@@ -32,4 +37,7 @@ def logoff(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
 
-    token_db.expire_token(db, token_db.find_token(db, authorization[7:]))
+    try:
+        token_db.expire_token(db, token_db.find_token(db, authorization[7:]))
+    except LookupError:
+        raise HTTPException(status_code=404, detail="token not found")
