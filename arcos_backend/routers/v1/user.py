@@ -32,7 +32,6 @@ def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
 
 @router.post('/properties/update')
 async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
-    # plz tell izaak to set header `content-type` to `application/json` in the frontend, this is truly awful
     properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
 
     user_db.update_user_properties(db, user, properties)
