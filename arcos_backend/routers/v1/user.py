@@ -1,62 +1,53 @@
 import json
 from typing import Annotated
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from ._auth import basic, bearer
-from ..._shared import database as db, filesystem as fs
+from ._common import auth_basic, auth_bearer, get_db
+from ..._shared import filesystem as fs
+from ..._utils import json2dict
+from ...davult import schemas, models
+from ...davult.crud import user as user_db
 
 
 router = APIRouter()
 
 
 @router.get('/create')
-def user_create(authorization: Annotated[str, Header()]):
-    username, password = basic(authorization)
+def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
+    username, password = credentials
 
-    db.create_user(username, password)
-    user_id = db.find_user(username)
-    fs.create_userspace(user_id)
+    user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
+    fs.create_userspace(user.id)
 
     return {'error': {'valid': True}}
 
 
 @router.get('/properties')
-def user_properties(authorization: Annotated[str, Header()]):
-    user_id = bearer(authorization)
-
-    user_properties = db.get_user_info(user_id)['account']['properties']
-
-    return {**user_properties, 'valid': True, 'statusCode': 200}
+def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
+    return {**json2dict(user.properties), 'valid': True, 'statusCode': 200}
 
 
 @router.post('/properties/update')
-async def user_properties_update(authorization: Annotated[str, Header()],  request: Request):
-    user_id = bearer(authorization)
-
+async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     # plz tell izaak to set header `content-type` to `application/json` in the frontend, this is truly awful
     properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
 
-    db.set_user_properties(user_id, properties)
+    user_db.update_user_properties(db, user, properties)
 
 
 @router.get('/delete')
-def user_delete(authorization: Annotated[str, Header()]):
-    user_id = bearer(authorization)
-
-    db.delete_user(user_id)
+def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
+    user_db.delete_user(db, user)
 
 
 @router.get('/rename')
-def user_rename(authorization: Annotated[str, Header()], newname: str):
-    user_id = bearer(authorization)
-
-    db.rename_user(user_id, newname)
+def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], newname: str):
+    user_db.rename_user(db, user, newname)
 
 
 @router.get('/changepswd')
-def user_changepswd(authorization: Annotated[str, Header()], new: str):
-    user_id = bearer(authorization)
-
-    db.set_user_password(user_id, new)
+def user_changepswd(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], new: str):
+    user_db.set_user_password(db, user, new)

@@ -3,7 +3,6 @@ import shutil
 
 import yaml
 
-from .database import Database
 from .filesystem import Filesystem
 
 
@@ -11,14 +10,13 @@ API_REVISION = 1
 
 
 configuration: dict
-database: Database
 filesystem: Filesystem
 
 _is_initialized: bool = False
 
 
 def init():
-    global configuration, database, filesystem, _is_initialized
+    global configuration, filesystem, _is_initialized
 
     if _is_initialized:
         raise RuntimeError("shared variables are already initialized")
@@ -33,8 +31,6 @@ def init():
 
     storage_cfg = configuration['storage']
     os.makedirs(storage_cfg['root'], exist_ok=True)
-
-    database = Database(os.path.join(storage_cfg['root'], storage_cfg['database']))
 
     filesystem = Filesystem(os.path.join(storage_cfg['root'], storage_cfg['filesystem']),
                             os.path.join(storage_cfg['root'], storage_cfg['template']) if storage_cfg['template'] is not None else None,

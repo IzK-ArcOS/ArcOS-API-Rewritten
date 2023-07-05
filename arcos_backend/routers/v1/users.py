@@ -1,26 +1,25 @@
-from fastapi import APIRouter
+import string
+from typing import Annotated
 
-from ..._shared import database as db
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from ._common import get_db
+from ..._utils import json2dict
+from ...davult.crud import user as user_db
 
 
 router = APIRouter()
 
 
 @router.get('/get')
-def users_get():
-    user_ids = db.get_user_ids()
-    user_infos = [db.get_user_info(user_id) for user_id in user_ids]
-    user_infos = [{
-        'username': info['username'],
-        'acc': {
-            'enabled': info['account']['enabled'],
-            'admin': info['account']['admin'],
-            'profilePicture': info['account']['profile_picture'],
-            'properties': info['account']['properties']
-        }
-    } for info in user_infos]
+def users_get(db: Annotated[Session, Depends(get_db)]):
+    users = user_db.get_users(db)
 
     return {
-        'data': user_infos,
+        'data': [{
+            'username': user.username,
+            'acc': json2dict(user.properties)['acc']
+        } for user in users],
         'valid': True
     }

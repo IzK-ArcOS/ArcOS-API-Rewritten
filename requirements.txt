@@ -1,3 +1,4 @@
 fastapi
 pyyaml
 python-magic
+sqlalchemy
