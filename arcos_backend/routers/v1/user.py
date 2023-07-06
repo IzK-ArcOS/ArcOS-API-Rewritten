@@ -23,6 +23,8 @@ def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[
         user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
     except ValueError:
         raise HTTPException(status_code=422, detail="invalid username")
+    except RuntimeError:
+        raise HTTPException(status_code=409, detail="username already exists")
     fs.create_userspace(user.id)
 
     return {'error': {'valid': True}}
