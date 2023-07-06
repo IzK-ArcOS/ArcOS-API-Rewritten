@@ -7,6 +7,7 @@ from .davult.database import engine
 
 from .filesystem import Filesystem
 from .routers.v1 import server, token, user, users, filesystem
+from .authentication import AuthCodeMiddleware
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -22,6 +23,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.add_middleware(
+    AuthCodeMiddleware,
+    authcode=shared.configuration['security']['auth_code']
+)
 
 app.include_router(server.router)
 app.include_router(token.router)
