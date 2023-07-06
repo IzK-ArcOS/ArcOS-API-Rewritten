@@ -24,8 +24,6 @@ def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
     db.commit()
     db.refresh(db_token)
 
-    time.sleep(0.25)
-
     return db_token
 
 
