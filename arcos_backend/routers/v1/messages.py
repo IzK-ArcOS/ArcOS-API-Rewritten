@@ -120,7 +120,7 @@ def messages_get(user: Annotated[models.User, Depends(auth_bearer)]):
             'replyingTo': message.replying_id,
             'id': message.id,
             'read': message.is_read
-        } for message in user.sent_messages + user.received_messages]
+        } for message in set(user.sent_messages + user.received_messages)]
     }
 
 
