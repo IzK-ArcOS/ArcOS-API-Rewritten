@@ -28,6 +28,7 @@ def send_message(db: Session, message: schemas.MessageCreate) -> models.Message:
 
 def delete_message(db: Session, message: models.Message):
     db.delete(message)
+    db.commit()
 
 
 def get_message(db: Session, message_id: int) -> models.Message:
