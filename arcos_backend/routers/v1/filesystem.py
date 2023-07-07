@@ -31,7 +31,7 @@ def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
 def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     try:
         files, directories = fs.listdir(user.id, path)
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
     base_path = fs.get_basepath(user.id)
@@ -62,7 +62,7 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     try:
         fs.mkdir(user.id, path)
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
     return {'valid': True}
@@ -75,7 +75,7 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
     response.headers['Content-Type'] = fs.get_mime(user.id, path)
     try:
         response.body = fs.read(user.id, path)
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     response.status_code = 200
 
@@ -88,7 +88,7 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
 
     try:
         fs.write(user.id, path, file_data)
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
         raise HTTPException(status_code=409, detail="data is too large (not enough space)")
@@ -100,7 +100,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
 
     try:
         fs.write(user.id, target, fs.read(user.id, path))
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
         raise HTTPException(status_code=409, detail="data is too large (not enough space)")
@@ -110,7 +110,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
 def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     try:
         fs.delete(user.id, path)
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
 
@@ -120,7 +120,7 @@ def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: 
 
     try:
         fs.move(user.id, _b64(oldpath), _b64(newpath))
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
 
@@ -128,7 +128,7 @@ def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: 
 def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
     try:
         paths = fs.get_tree(user.id, ".")
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
     return {
