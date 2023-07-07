@@ -61,5 +61,16 @@ def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
 
 
 @router.get('/changepswd')
-def user_changepswd(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], new: str):
-    user_db.set_user_password(db, user, new)
+def user_changepswd(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)], new: str):
+    new = base64.b64decode(new).decode('utf-8')
+    username, password = credentials
+
+    try:
+        user = user_db.find_user(db, username)
+    except LookupError:
+        raise HTTPException(status_code=404)
+
+    if not user_db.validate_credentials(user, password):
+        raise HTTPException(status_code=403)
+
+    user_db.set_user_password(db, user_db.find_user(db, username), new)

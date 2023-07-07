@@ -75,5 +75,5 @@ def get_users(db: Session) -> list[models.User]:
     return db.query(models.User).all()
 
 
-def validate_credentials(db: Session, username: str, password: str) -> bool:
-    return find_user(db, username).hashed_password == hash_salty(password)
+def validate_credentials(user: models.User, password: str) -> bool:
+    return user.hashed_password == hash_salty(password)

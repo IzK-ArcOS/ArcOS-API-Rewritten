@@ -10,7 +10,8 @@ from .. import models, schemas
 
 def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
     owner = get_user(db, token.owner_id)
-    if not validate_credentials(db, owner.username, token.password):
+
+    if not validate_credentials(owner, token.password):
         raise ValueError("invalid credentials")
 
     db_token = models.Token(
