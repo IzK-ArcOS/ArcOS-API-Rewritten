@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from . import message as msg_db, token as token_db
 from .. import models, schemas
 from ..._utils import hash_salty, validate_username, dict2json, json2dict, MAX_USERNAME_LEN
 
@@ -37,7 +38,17 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
 
 
 def delete_user(db: Session, user: models.User):
-    db.delete(user)
+    user.username = f'deleted#{user.id}'
+    user.properties = None
+    user.hashed_password = None
+
+    for message in user.sent_messages:
+        msg_db.delete_message(db, message)
+
+    for token in user.tokens:
+        token_db.expire_token(db, token)
+
+    user.is_deleted = True
     db.commit()
 
 

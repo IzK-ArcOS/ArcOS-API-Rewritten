@@ -83,7 +83,7 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
     return {
         'valid': True,
         'data': {
-            'sender': message.sender.username if not message.is_deleted else '[ deleted ]',
+            'sender': message.sender.username,
             'receiver': message.receiver.username,
             'body': message.body,
             'replies': [reply.id for reply in msg_db.get_replies(db, message)],
@@ -128,12 +128,12 @@ def _get_thread_root(db: Session, message: models.Message) -> models.Message:
     return _get_thread_root(db, msg_db.get_message(db, reply_id)) if (reply_id := message.replying_id) else message
 
 
-def _expand_message_replies(db: Session, message: models.Message) -> dict:
+def _expand_message_replies(db: Session, user: models.User, message: models.Message) -> dict:
     return {
-        'sender': message.sender.username if not message.is_deleted else '[ deleted ]',
+        'sender': message.sender.username,
         'receiver': message.receiver.username,
         'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
-        'replies': [_expand_message_replies(db, reply) for reply in msg_db.get_replies(db, message)],
+        'replies': [_expand_message_replies(db, user, reply) for reply in msg_db.get_replies(db, message) if reply in set(user.sent_messages + user.received_messages)],
         'replyingTo': message.replying_id,
         'timestamp': round(message.sent_time.timestamp()),
         'id': message.id,
@@ -148,7 +148,7 @@ def messages_thread(db: Annotated[Session, Depends(get_db)], user: Annotated[mod
         raise HTTPException(status_code=403)
 
     root_message = _get_thread_root(db, message)
-    thread = _expand_message_replies(db, root_message)
+    thread = _expand_message_replies(db, user, root_message)
 
     return {
         'valid': True,

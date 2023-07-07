@@ -19,6 +19,6 @@ def users_get(db: Annotated[Session, Depends(get_db)]):
         'data': [{
             'username': user.username,
             'acc': json2dict(user.properties)['acc']
-        } for user in users],
+        } for user in users if not user.is_deleted],
         'valid': True
     }

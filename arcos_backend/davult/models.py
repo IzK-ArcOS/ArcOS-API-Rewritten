@@ -51,6 +51,7 @@ class User(Base):
     hashed_password = Column(String)
     creation_time = Column(DateTime)
     properties = Column(String, default=USER_DEFAULT_PROPERTIES_STR)
+    is_deleted = Column(Boolean, default=False)
 
     tokens = relationship("Token", back_populates="owner")
     sent_messages = relationship("Message", back_populates="sender", foreign_keys=Message.sender_id)
