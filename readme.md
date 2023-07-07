@@ -18,7 +18,7 @@ it is quite easy to setup the thing:
 to launch you can just do:
 - linux: `./main.py` (assuming file permissions are transferred, otherwise
 first do `chmod +x main.py`)
-- windows: `py main.yp`
+- windows: `py main.py`
 
 ## Configuration
 
