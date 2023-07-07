@@ -48,3 +48,7 @@ def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotate
 
 def get_path(path: str) -> str:
     return base64.b64decode(path).decode('utf-8')
+
+
+def adapt_timestamp(timestamp: float) -> int:
+    return round(timestamp * 1000)

@@ -1,17 +1,8 @@
 import hashlib
 import json
 
-from sqlalchemy import Column
-
 
 MAX_USERNAME_LEN = 25
-
-
-def format_timestamp(column: Column):
-    if not column.timestamp:
-        return 0
-
-    return round(column.timestamp()) * 1000
 
 
 def validate_username(username: str) -> bool:
