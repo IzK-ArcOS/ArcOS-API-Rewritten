@@ -45,7 +45,13 @@ class Filesystem:
 
     def delete(self, userspace: int, path: str):
         self._validate_path(userspace, path)
-        shutil.rmtree(os.path.join(self._root, str(userspace), path))
+
+        full_path = os.path.join(self._root, str(userspace), path)
+
+        if os.path.isdir(full_path):
+            shutil.rmtree(full_path)
+        else:
+            os.unlink(full_path)
 
     def move(self, userspace: int, source: str, destination: str):
         self._validate_path(userspace, source)
