@@ -52,7 +52,10 @@ def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
 
 @router.get('/rename')
 def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], newname: str):
-    user_db.rename_user(db, user, newname)
+    try:
+        user_db.rename_user(db, user, newname)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid username")
 
 
 @router.get('/changepswd')

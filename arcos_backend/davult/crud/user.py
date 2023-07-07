@@ -51,6 +51,9 @@ def find_user(db: Session, username: str) -> models.User:
 
 
 def rename_user(db: Session, user: models.User, new_name: str):
+    if not validate_username(new_name):
+        raise ValueError("invalid new name")
+
     user.username = new_name
     db.commit()
 
