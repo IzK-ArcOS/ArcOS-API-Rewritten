@@ -30,7 +30,10 @@ def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotate
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
 
-    token = token_db.find_token(db, authorization[7:])
+    try:
+        token = token_db.find_token(db, authorization[7:])
+    except LookupError:
+        raise HTTPException(status_code=403, detail="invalid token")
 
     if token is None:
         raise HTTPException(status_code=403, detail="invalid token")
