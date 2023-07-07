@@ -83,7 +83,7 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
     return {
         'valid': True,
         'data': {
-            'sender': message.sender.username,
+            'sender': message.sender.username if not message.is_deleted else '[ deleted ]',
             'receiver': message.receiver.username,
             'body': message.body,
             'replies': [reply.id for reply in msg_db.get_replies(db, message)],
@@ -102,7 +102,7 @@ def messages_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[mod
     except LookupError:
         raise HTTPException(status_code=404)
 
-    if message not in user.sent_messages + user.received_messages:
+    if message not in user.sent_messages:
         raise HTTPException(status_code=403)
 
     msg_db.delete_message(db, message)
@@ -120,7 +120,7 @@ def messages_get(user: Annotated[models.User, Depends(auth_bearer)]):
             'replyingTo': message.replying_id,
             'id': message.id,
             'read': message.is_read
-        } for message in set(user.sent_messages + user.received_messages)]
+        } for message in set(user.sent_messages + user.received_messages) if not message.is_deleted]
     }
 
 
@@ -130,7 +130,7 @@ def _get_thread_root(db: Session, message: models.Message) -> models.Message:
 
 def _expand_message_replies(db: Session, message: models.Message) -> dict:
     return {
-        'sender': message.sender.username,
+        'sender': message.sender.username if not message.is_deleted else '[ deleted ]',
         'receiver': message.receiver.username,
         'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
         'replies': [_expand_message_replies(db, reply) for reply in msg_db.get_replies(db, message)],

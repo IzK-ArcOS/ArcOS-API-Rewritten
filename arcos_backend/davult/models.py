@@ -34,6 +34,7 @@ class Message(Base):
     replying_id = Column(ForeignKey("messages.id"), default=None)
     sent_time = Column(DateTime)
     is_read = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
 
     sender = relationship("User", back_populates="sent_messages", foreign_keys=sender_id)
     receiver = relationship("User", back_populates="received_messages", foreign_keys=receiver_id)
