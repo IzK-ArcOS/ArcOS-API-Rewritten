@@ -18,7 +18,7 @@ def get_cfg():
 models.Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title=cfg['info']['name'], version="0.0.1")
+app = FastAPI(title=cfg['info']['name'], version="always evolving :b")
 
 
 # tells cors to fuck off
