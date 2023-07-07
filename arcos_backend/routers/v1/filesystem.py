@@ -100,7 +100,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
     target = base64.b64decode(target).decode('utf-8')
 
     try:
-        fs.copy(user.id, path, target)
+        fs.write(user.id, target, fs.read(user.id, path))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="path not found")
 
