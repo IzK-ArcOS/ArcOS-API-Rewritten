@@ -8,7 +8,7 @@ from starlette.requests import Request
 from ._common import get_db, auth_bearer
 from ...davult import models, schemas
 from ...davult.crud import message as msg_db, user as user_db
-
+from ..._utils import format_timestamp
 
 MESSAGE_PREVIEW_BODY_LEN = 30
 
@@ -88,7 +88,7 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
             'body': message.body,
             'replies': [reply.id for reply in msg_db.get_replies(db, message)],
             'replyingTo': message.replying_id,
-            'timestamp': round(message.sent_time.timestamp()),
+            'timestamp': format_timestamp(message.sent_time),
             'id': message.id,
             'read': message.is_read
         }
@@ -116,7 +116,7 @@ def messages_get(user: Annotated[models.User, Depends(auth_bearer)]):
             'sender': message.sender.username,
             'receiver': message.receiver.username,
             'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
-            'timestamp': round(message.sent_time.timestamp()),
+            'timestamp': format_timestamp(message.sent_time),
             'replyingTo': message.replying_id,
             'id': message.id,
             'read': message.is_read
@@ -135,7 +135,7 @@ def _expand_message_replies(db: Session, user: models.User, message: models.Mess
         'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
         'replies': [_expand_message_replies(db, user, reply) for reply in msg_db.get_replies(db, message) if reply in set(user.sent_messages + user.received_messages)],
         'replyingTo': message.replying_id,
-        'timestamp': round(message.sent_time.timestamp()),
+        'timestamp': format_timestamp(message.sent_time),
         'id': message.id,
     }
 
