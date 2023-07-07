@@ -6,7 +6,7 @@ from .davult import models
 from .davult.database import engine
 
 from .filesystem import Filesystem
-from .routers.v1 import server, token, user, users, filesystem
+from .routers.v1 import server, token, user, users, filesystem, messages
 from .authentication import AuthCodeMiddleware
 
 
@@ -33,3 +33,4 @@ app.include_router(token.router)
 app.include_router(user.router, prefix='/user')
 app.include_router(users.router, prefix='/users')
 app.include_router(filesystem.router, prefix='/fs')
+app.include_router(messages.router, prefix='/messages')

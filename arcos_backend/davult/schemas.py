@@ -9,6 +9,20 @@ from .models import USER_DEFAULT_PROPERTIES
 MODEL_CONFIG = ConfigDict(from_attributes=True)
 
 
+class UserBase(BaseModel):
+    username: str
+    properties: dict = USER_DEFAULT_PROPERTIES
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+@dataclass(config=MODEL_CONFIG)
+class User(UserBase):
+    id: int
+
+
 class TokenBase(BaseModel):
     owner_id: int
     lifetime: float
@@ -24,16 +38,19 @@ class Token(TokenBase):
     creation_time: datetime
 
 
-class UserBase(BaseModel):
-    username: str
-    properties: dict = USER_DEFAULT_PROPERTIES
+class MessageBase(BaseModel):
+    sender_id: int
+    receiver_id: int
+    body: str
+    replying_id: int | None = None
 
 
-class UserCreate(UserBase):
-    password: str
+class MessageCreate(MessageBase):
+    pass
 
 
 @dataclass(config=MODEL_CONFIG)
-class User(UserBase):
+class Message(MessageBase):
     id: int
-    tokens: list[Token] = []
+    sent_time: datetime
+    is_read: bool

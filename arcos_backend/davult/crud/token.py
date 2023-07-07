@@ -17,7 +17,7 @@ def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
         value=str(uuid.uuid4()),
         owner_id=owner.id,
         lifetime=token.lifetime,
-        creation_time=datetime.fromtimestamp(time.time())
+        creation_time=datetime.utcnow()
     )
 
     db.add(db_token)
