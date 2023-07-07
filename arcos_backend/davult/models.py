@@ -49,6 +49,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    creation_time = Column(DateTime)
     properties = Column(String, default=USER_DEFAULT_PROPERTIES_STR)
 
     tokens = relationship("Token", back_populates="owner")

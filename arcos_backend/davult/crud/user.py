@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -21,7 +22,8 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db_user = models.User(
         **user,
         id=random.randint(0, 999_999_999),
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        creation_time=datetime.utcnow()
     )
 
     db.add(db_user)
