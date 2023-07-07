@@ -2,12 +2,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
-from ..._utils import hash_salty, validate_username, dict2json, json2dict
+from ..._utils import hash_salty, validate_username, dict2json, json2dict, MAX_USERNAME_LEN
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     if not validate_username(user.username):
-        raise ValueError("invalid username")
+        raise ValueError(f"username is too long (>{MAX_USERNAME_LEN})")
 
     hashed_password = hash_salty(user.password)
 
@@ -50,11 +50,11 @@ def find_user(db: Session, username: str) -> models.User:
     return db_user
 
 
-def rename_user(db: Session, user: models.User, new_name: str):
-    if not validate_username(new_name):
-        raise ValueError("invalid new name")
+def rename_user(db: Session, user: models.User, new_username: str):
+    if not validate_username(new_username):
+        raise ValueError(f"new username is too long (>{MAX_USERNAME_LEN})")
 
-    user.username = new_name
+    user.username = new_username
     db.commit()
 
 

@@ -7,7 +7,7 @@ from starlette.requests import Request
 
 from ._common import auth_basic, auth_bearer, get_db
 from ..._shared import filesystem as fs
-from ..._utils import json2dict
+from ..._utils import json2dict, MAX_USERNAME_LEN
 from ...davult import schemas, models
 from ...davult.crud import user as user_db
 
@@ -22,7 +22,7 @@ def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[
     try:
         user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
     except ValueError:
-        raise HTTPException(status_code=422, detail="invalid username")
+        raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
     except RuntimeError:
         raise HTTPException(status_code=409, detail="username already exists")
     fs.create_userspace(user.id)
@@ -55,7 +55,7 @@ def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
     try:
         user_db.rename_user(db, user, newname)
     except ValueError:
-        raise HTTPException(status_code=422, detail="invalid username")
+        raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
 
 
 @router.get('/changepswd')

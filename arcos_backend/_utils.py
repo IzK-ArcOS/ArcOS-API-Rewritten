@@ -1,15 +1,13 @@
 import hashlib
 import json
-import string
 
 
-ALLOWED_SYMBOLS = string.ascii_letters + string.digits + '_' + ' '
+MAX_USERNAME_LEN = 25
 
 
 def validate_username(username: str) -> bool:
-    for char in username:
-        if char not in ALLOWED_SYMBOLS:
-            return False
+    if len(username) > MAX_USERNAME_LEN:
+        return False
     return True
 
 
