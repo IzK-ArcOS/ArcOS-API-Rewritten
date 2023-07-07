@@ -1,3 +1,4 @@
+import base64
 import json
 from typing import Annotated
 
@@ -52,6 +53,7 @@ def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
 
 @router.get('/rename')
 def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], newname: str):
+    newname = base64.b64decode(newname).decode('utf-8')
     try:
         user_db.rename_user(db, user, newname)
     except ValueError:
