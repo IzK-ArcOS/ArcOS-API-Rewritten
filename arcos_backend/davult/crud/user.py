@@ -30,6 +30,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
 
 def delete_user(db: Session, user: models.User):
     db.delete(user)
+    db.commit()
 
 
 def get_user(db: Session, user_id: int) -> models.User:
