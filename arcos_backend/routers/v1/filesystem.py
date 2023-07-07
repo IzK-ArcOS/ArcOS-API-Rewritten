@@ -70,11 +70,12 @@ def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Anno
 
 @router.get('/file/get')
 def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    response.headers['Content-Type'] = fs.get_mime(user.id, path)
     try:
+        response.headers['Content-Type'] = fs.get_mime(user.id, path)
         response.body = fs.read(user.id, path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
+
     response.status_code = 200
 
     return response
