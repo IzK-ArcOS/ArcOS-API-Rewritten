@@ -1,5 +1,7 @@
-port: 3333
-name: "ArcAPI"
+info:
+  port: 3333
+  listen: false
+  name: "ArcAPI"
 
 filesystem:
   userspace_size: 2147483648  # 2 GiB

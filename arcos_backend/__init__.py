@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import _shared as shared; shared.init()  # NOQA E701
+from ._shared import configuration as cfg
 from .davult import models
 from .davult.database import engine
 
@@ -10,9 +11,14 @@ from .routers.v1 import server, token, user, users, filesystem, messages
 from .authentication import AuthCodeMiddleware
 
 
+def get_cfg():
+    return cfg
+
+
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=shared.configuration['name'], version="0.0.1")
+
+app = FastAPI(title=cfg['info']['name'], version="0.0.1")
 
 
 # tells cors to fuck off
@@ -25,7 +31,7 @@ app.add_middleware(
 
 app.add_middleware(
     AuthCodeMiddleware,
-    authcode=shared.configuration['security']['auth_code']
+    authcode=cfg['security']['auth_code']
 )
 
 app.include_router(server.router)
