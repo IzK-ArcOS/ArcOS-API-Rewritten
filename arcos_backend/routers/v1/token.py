@@ -16,7 +16,10 @@ router = APIRouter()
 def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
-    user = user_db.find_user(db, username)
+    try:
+        user = user_db.find_user(db, username)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="user not found")
 
     try:
         token = token_db.generate_token(db, schemas.TokenCreate(
@@ -24,8 +27,6 @@ def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[s
             password=password,
             lifetime=cfg['security']['token_lifetime']
         ))
-    except LookupError:
-        raise HTTPException(status_code=404, detail="user not found")
     except ValueError:
         raise HTTPException(status_code=403, detail="invalid credentials")
 
