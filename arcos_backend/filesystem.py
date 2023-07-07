@@ -16,9 +16,11 @@ class Filesystem:
         os.makedirs(self._root, exist_ok=True)
 
     def mkdir(self, userspace: int, path: str):
+        self._validate_path(userspace, path)
         os.mkdir(os.path.join(self._root, str(userspace), path))
 
     def listdir(self, userspace: int, path: str):
+        self._validate_path(userspace, path)
         path = os.path.join(self._root, str(userspace), path)
 
         files, directories = [], []
@@ -33,31 +35,39 @@ class Filesystem:
         return files, directories
 
     def write(self, userspace: int, path: str, data: bytes):
+        self._validate_path(userspace, path)
         with open(os.path.join(self._root, str(userspace), path), 'wb') as f:
             f.write(data)
 
     def delete(self, userspace: int, path: str):
+        self._validate_path(userspace, path)
         shutil.rmtree(os.path.join(self._root, str(userspace), path))
 
     def move(self, userspace: int, source: str, destination: str):
+        self._validate_path(userspace, source)
+        self._validate_path(userspace, destination)
         base_path = os.path.join(self._root, str(userspace))
         shutil.move(os.path.join(base_path, source),
                     os.path.join(base_path, destination))
 
     def read(self, userspace: int, path: str) -> bytes:
+        self._validate_path(userspace, path)
         with open(os.path.join(self._root, str(userspace), path), 'rb') as f:
             return f.read()
 
     def get_size(self, userspace: int, path: str) -> int:
+        self._validate_path(userspace, path)
         return sum(sum(os.path.getsize(os.path.join(dirpath, file)) for file in files) for dirpath, files, _ in
                    os.walk(walk_path)) \
             if os.path.isdir(walk_path := os.path.join(self._root, str(userspace), path)) else os.path.getsize(
             os.path.join(walk_path))
 
     def get_mime(self, userspace: int, path: str) -> str:
+        self._validate_path(userspace, path)
         return magic.from_file(os.path.join(self._root, str(userspace), path), mime=True)
 
     def get_tree(self, userspace: int, path: str):
+        self._validate_path(userspace, path)
         base_path = os.path.join(self._root, str(userspace))
 
         paths = []
@@ -67,6 +77,7 @@ class Filesystem:
         return paths
 
     def deploy_template(self, userspace: int, path: str):
+        self._validate_path(userspace, path)
         if self._template is None:
             return
 
@@ -88,5 +99,9 @@ class Filesystem:
     def get_userspace_size(self):
         return self._userspace_size
 
-    def validate_path(self, userspace: int, path: str) -> bool:
-        return os.path.exists(os.path.join(self._root, str(userspace), path))
+    def _validate_path(self, userspace: int, path: str):
+        userspace_root = os.path.abspath(self.get_basepath(userspace))
+        requested_path = os.path.abspath(os.path.join(userspace_root, path))
+
+        if not requested_path.startswith(userspace_root):
+            raise ValueError("path breaks out of the filesystem")
