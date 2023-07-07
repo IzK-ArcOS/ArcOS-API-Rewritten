@@ -70,8 +70,6 @@ def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Anno
 
 @router.get('/file/get')
 def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
-    path = base64.b64decode(path).decode('utf-8')
-
     response.headers['Content-Type'] = fs.get_mime(user.id, path)
     try:
         response.body = fs.read(user.id, path)
