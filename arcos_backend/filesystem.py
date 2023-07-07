@@ -36,6 +36,10 @@ class Filesystem:
 
     def write(self, userspace: int, path: str, data: bytes):
         self._validate_path(userspace, path)
+
+        if self.get_size(userspace, '.') + len(data) > self._userspace_size:
+            raise RuntimeError("data is too large (not enough space)")
+
         with open(os.path.join(self._root, str(userspace), path), 'wb') as f:
             f.write(data)
 

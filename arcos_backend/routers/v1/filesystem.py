@@ -86,13 +86,12 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     file_data = await request.body()
 
-    if fs.get_size(user.id, '.') + len(file_data) > fs.get_userspace_size():
-        raise HTTPException(status_code=409, detail="there's not enough space free on your account")
-
     try:
         fs.write(user.id, path, file_data)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="path not found")
+    except RuntimeError:
+        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/cp')
@@ -103,6 +102,8 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
         fs.write(user.id, target, fs.read(user.id, path))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="path not found")
+    except RuntimeError:
+        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/rm')
