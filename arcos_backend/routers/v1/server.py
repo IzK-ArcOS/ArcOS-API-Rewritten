@@ -9,7 +9,7 @@ router = APIRouter()
 @router.get('/connect')
 def connect():
     return {
-        'platform': f"ArcOS @ {cfg['name']}",
+        'platform': f"ArcOS @ {cfg['info']['name']}",
         'port': cfg['port'],
         'referrer': '/connect',
         'valid': True,
