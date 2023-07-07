@@ -1,3 +1,5 @@
+import random
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -16,7 +18,11 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     del user['password']
     user['properties'] = dict2json(user['properties'])
 
-    db_user = models.User(**user, hashed_password=hashed_password)
+    db_user = models.User(
+        **user,
+        id=random.randint(0, 999_999_999),
+        hashed_password=hashed_password
+    )
 
     db.add(db_user)
     try:
