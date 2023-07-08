@@ -133,7 +133,7 @@ def _expand_message_replies(msg_db: MessageDB, user: models.User, message: model
         'sender': message.sender.username,
         'receiver': message.receiver.username,
         'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
-        'replies': [_expand_message_replies(user, reply) for reply in msg_db.get_replies(message) if reply in set(user.sent_messages + user.received_messages)],
+        'replies': [_expand_message_replies(user, reply) for reply in msg_db.get_replies(message) if reply in set(user.sent_messages + user.received_messages) and (msg_db.get_replies(reply) or not reply.is_deleted)],
         'replyingTo': message.replying_id,
         'timestamp': adapt_timestamp(message.sent_time.timestamp()),
         'id': message.id,
