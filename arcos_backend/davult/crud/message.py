@@ -1,53 +1,49 @@
 import random
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-
+from . import CRUD
 from .. import models, schemas
 
 
 MAX_MESSAGE_LENGTH = 2000
 
 
-def send_message(db: Session, message: schemas.MessageCreate) -> models.Message:
-    if len(message.body) > MAX_MESSAGE_LENGTH:
-        raise ValueError(f"too long message (>{MAX_MESSAGE_LENGTH})")
+class MessageDB(CRUD):
+    def send_message(self, message: schemas.MessageCreate) -> models.Message:
+        if len(message.body) > MAX_MESSAGE_LENGTH:
+            raise ValueError(f"too long message (>{MAX_MESSAGE_LENGTH})")
 
-    db_message = models.Message(
-        **message.dict(),
-        id=random.randint(0, 999_999_999),
-        sent_time=datetime.utcnow()
-    )
+        db_message = models.Message(
+            **message.dict(),
+            id=random.randint(0, 999_999_999),
+            sent_time=datetime.utcnow()
+        )
 
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
+        self._db.add(db_message)
+        self._db.commit()
+        self._db.refresh(db_message)
 
-    return db_message
+        return db_message
 
+    def delete_message(self, message: models.Message):
+        message.body = "[ deleted ]"
+        message.is_deleted = True
+        self._db.commit()
 
-def delete_message(db: Session, message: models.Message):
-    message.body = "[ deleted ]"
-    message.is_deleted = True
-    db.commit()
+    def get_message(self, message_id: int) -> models.Message:
+        message = self._db.get(models.Message, message_id)
 
+        if message is None:
+            raise LookupError(f"unknown message (ID: {message_id})")
 
-def get_message(db: Session, message_id: int) -> models.Message:
-    message = db.get(models.Message, message_id)
+        return message
 
-    if message is None:
-        raise LookupError(f"unknown message (ID: {message_id})")
+    def mark_read(self, message: models.Message):
+        if message.is_read:
+            return
 
-    return message
+        message.is_read = True
+        self._db.commit()
 
-
-def mark_read(db: Session, message: models.Message):
-    if message.is_read:
-        return
-
-    message.is_read = True
-    db.commit()
-
-
-def get_replies(db: Session, message: models.Message) -> list[models.Message]:
-    return db.query(models.Message).filter(models.Message.replying_id == message.id).all()
+    def get_replies(self, message: models.Message) -> list[models.Message]:
+        return self._db.query(models.Message).filter(models.Message.replying_id == message.id).all()

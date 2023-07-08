@@ -2,54 +2,53 @@ import time
 import uuid
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-
-from .user import validate_credentials, get_user
+from . import CRUD, user
 from .. import models, schemas
 
 
-def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
-    owner = get_user(db, token.owner_id)
+class TokenDB(CRUD):
 
-    if not validate_credentials(owner, token.password):
-        raise ValueError("invalid credentials")
+    def generate_token(self, token: schemas.TokenCreate) -> models.Token:
+        user_db = user.UserDB()
 
-    db_token = models.Token(
-        value=str(uuid.uuid4()),
-        owner_id=owner.id,
-        lifetime=token.lifetime,
-        creation_time=datetime.utcnow()
-    )
+        owner = user_db.get_user(token.owner_id)
 
-    db.add(db_token)
-    db.commit()
-    db.refresh(db_token)
+        if not user_db.validate_credentials(owner, token.password):
+            raise ValueError("invalid credentials")
 
-    return db_token
+        db_token = models.Token(
+            value=str(uuid.uuid4()),
+            owner_id=owner.id,
+            lifetime=token.lifetime,
+            creation_time=datetime.utcnow()
+        )
 
+        self._db.add(db_token)
+        self._db.commit()
+        self._db.refresh(db_token)
 
-def find_token(db: Session, value: str) -> models.Token:
-    token = db.get(models.Token, value)
+        return db_token
 
-    if token is None:
-        raise LookupError(f"unknown token (value: {value})")
+    def find_token(self, value: str) -> models.Token:
+        token = self._db.get(models.Token, value)
 
-    return token
+        if token is None:
+            raise LookupError(f"unknown token (value: {value})")
 
+        return token
 
-def expire_token(db: Session, token: models.Token):
-    db.delete(token)
-    db.commit()
+    def expire_token(self, token: models.Token):
+        self._db.delete(token)
+        self._db.commit()
 
+    def validate_token(self, token: models.Token) -> models.User:
+        if token.creation_time.timestamp() + token.lifetime < time.time():
+            self.expire_token(token)
+            raise ValueError("token has expired")
 
-def validate_token(db: Session, token: models.Token) -> models.User:
-    if token.creation_time.timestamp() + token.lifetime < time.time():
-        expire_token(db, token)
-        raise ValueError("token has expired")
+        user = self._db.get(models.User, token.owner_id)
 
-    user = db.get(models.User, token.owner_id)
+        if user is None:
+            raise LookupError("token is owned by an invalid user")
 
-    if user is None:
-        raise LookupError("token is owned by an invalid user")
-
-    return user
+        return user
