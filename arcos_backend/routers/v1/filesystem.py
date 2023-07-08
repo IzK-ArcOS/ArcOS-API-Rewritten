@@ -7,14 +7,16 @@ from starlette.requests import Request
 from ._common import auth_bearer, get_path
 from ..._shared import filesystem as fs
 from ...davult import models
-
+from ...filesystem import Userspace
 
 router = APIRouter()
 
 
 @router.get('/quota')
 def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
-    used = fs.get_size(user.id, '.')
+    userspace = Userspace(fs, user.id)
+
+    used = userspace.get_size('.')
 
     return {
         'data': {
@@ -29,12 +31,14 @@ def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
 
 @router.get('/dir/get')
 def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+    userspace = Userspace(fs, user.id)
+
     try:
-        files, directories = fs.listdir(user.id, path)
+        files, directories = userspace.listdir(path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
-    base_path = fs.get_basepath(user.id)
+    base_path = userspace.get_root()
 
     _name = lambda s: s[s.rfind('/') + 1:]  # NOQA E731
     _scope = lambda s: s[len(base_path)+1:]  # NOQA E731
@@ -47,8 +51,8 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
             'files': [{
                 'filename': _name(file),
                 'scopedPath': (scoped := _scope(file)),
-                'size': fs.get_size(user.id, scoped),
-                'mime': fs.get_mime(user.id, scoped)
+                'size': userspace.get_size(scoped),
+                'mime': userspace.get_mime(scoped)
             } for file in files],
             'directories': [{
                 'name': _name(directory),
@@ -60,8 +64,10 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
 @router.get('/dir/create')
 def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+    userspace = Userspace(fs, user.id)
+
     try:
-        fs.mkdir(user.id, path)
+        userspace.mkdir(path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
@@ -70,9 +76,11 @@ def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Anno
 
 @router.get('/file/get')
 def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+    userspace = Userspace(fs, user.id)
+
     try:
-        response.headers['Content-Type'] = fs.get_mime(user.id, path)
-        response.body = fs.read(user.id, path)
+        response.headers['Content-Type'] = userspace.get_mime(path)
+        response.body = userspace.read(path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
@@ -85,8 +93,10 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     file_data = await request.body()
 
+    userspace = Userspace(fs, user.id)
+
     try:
-        fs.write(user.id, path, file_data)
+        userspace.write(path, file_data)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
@@ -97,8 +107,10 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
 def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)], target: str):
     target = base64.b64decode(target).decode('utf-8')
 
+    userspace = Userspace(fs, user.id)
+
     try:
-        fs.write(user.id, target, fs.read(user.id, path))
+        userspace.write(target, userspace.read(path))
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
@@ -107,26 +119,32 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
 
 @router.get('/rm')
 def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+    userspace = Userspace(fs, user.id)
+
     try:
-        fs.delete(user.id, path)
+        userspace.remove(path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/rename')
 def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
-    _b64 = lambda s: base64.b64decode(s).decode('utf-8')
+    _b64 = lambda s: base64.b64decode(s).decode('utf-8')  # NOQA E731
+
+    userspace = Userspace(fs, user.id)
 
     try:
-        fs.move(user.id, _b64(oldpath), _b64(newpath))
+        userspace.move(_b64(oldpath), _b64(newpath))
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
 
 @router.get('/tree')
 def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
+    userspace = Userspace(fs, user.id)
+
     try:
-        paths = fs.get_tree(user.id, ".")
+        paths = userspace.get_tree(".")
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
@@ -134,7 +152,7 @@ def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
         'valid': True,
         'data': [{
             'scopedPath': path,
-            'mime': fs.get_mime(user.id, path),
+            'mime': userspace.get_mime(path),
             'filename': path[path.rfind('/') + 1:]
         } for path in paths]
     }
