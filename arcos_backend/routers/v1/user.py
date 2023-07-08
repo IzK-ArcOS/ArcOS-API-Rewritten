@@ -49,6 +49,7 @@ async def user_properties_update(request: Request, db: Annotated[Session, Depend
 @router.get('/delete')
 def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     user_db.delete_user(db, user)
+    fs.delete_userspace(user.id)
 
 
 @router.get('/rename')

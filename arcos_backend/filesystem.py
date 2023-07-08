@@ -103,6 +103,9 @@ class Filesystem:
         os.mkdir(os.path.join(self._root, str(userspace)))
         self.deploy_template(userspace, '.')
 
+    def delete_userspace(self, userspace: int):
+        shutil.rmtree(os.path.join(self._root, str(userspace)))
+
     def get_basepath(self, userspace: int):
         return os.path.join(self._root, str(userspace))
 
