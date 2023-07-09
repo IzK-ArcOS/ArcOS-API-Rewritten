@@ -2,23 +2,19 @@ import base64
 from typing import Annotated
 
 from fastapi import HTTPException, Header, Depends
+from sqlalchemy.orm import Session
 
 from ...davult import models
-from ...davult.crud.message import MessageDB
-from ...davult.crud.token import TokenDB
-from ...davult.crud.user import UserDB
+from ...davult.database import LocalSession
+from ...davult.crud import token as token_db
 
 
-def get_user_db() -> UserDB:
-    return UserDB()
-
-
-def get_token_db() -> TokenDB:
-    return TokenDB()
-
-
-def get_msg_db() -> MessageDB:
-    return MessageDB()
+def get_db() -> Session:
+    db = LocalSession()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def auth_basic(authorization: Annotated[str, Header()]) -> tuple[str, str]:
@@ -30,12 +26,12 @@ def auth_basic(authorization: Annotated[str, Header()]) -> tuple[str, str]:
     return username, password
 
 
-def auth_bearer(token_db: Annotated[TokenDB, Depends(get_token_db)], authorization: Annotated[str, Header()]) -> models.User:
+def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]) -> models.User:
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
 
     try:
-        token = token_db.find_token(authorization[7:])
+        token = token_db.find_token(db, authorization[7:])
     except LookupError:
         raise HTTPException(status_code=403, detail="invalid token")
 
@@ -43,7 +39,7 @@ def auth_bearer(token_db: Annotated[TokenDB, Depends(get_token_db)], authorizati
         raise HTTPException(status_code=403, detail="invalid token")
 
     try:
-        user = token_db.validate_token(token)
+        user = token_db.validate_token(db, token)
     except (ValueError, LookupError):
         raise HTTPException(status_code=403, detail="invalid token")
 

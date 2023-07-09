@@ -2,93 +2,98 @@ import random
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from . import CRUD, token as tkn_db, message as message_db
+from . import message as msg_db, token as token_db
 from .. import models, schemas
 from ..._utils import hash_salty, validate_username, dict2json, json2dict, MAX_USERNAME_LEN
 
 
-class UserDB(CRUD):
-    def create_user(self,  user: schemas.UserCreate) -> models.User:
-        if not validate_username(user.username):
-            raise ValueError(f"username is too long (>{MAX_USERNAME_LEN})")
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+    if not validate_username(user.username):
+        raise ValueError(f"username is too long (>{MAX_USERNAME_LEN})")
 
-        hashed_password = hash_salty(user.password)
+    hashed_password = hash_salty(user.password)
 
-        user = user.dict()
+    user = user.dict()
 
-        del user['password']
-        user['properties'] = dict2json(user['properties'])
+    del user['password']
+    user['properties'] = dict2json(user['properties'])
 
-        db_user = models.User(
-            **user,
-            id=random.randint(0, 999_999_999),
-            hashed_password=hashed_password,
-            creation_time=datetime.utcnow()
-        )
+    db_user = models.User(
+        **user,
+        id=random.randint(0, 999_999_999),
+        hashed_password=hashed_password,
+        creation_time=datetime.utcnow()
+    )
 
-        self._db.add(db_user)
-        try:
-            self._db.commit()
-        except IntegrityError:
-            raise RuntimeError("such username already exists")
-        self._db.refresh(db_user)
+    db.add(db_user)
+    try:
+        db.commit()
+    except IntegrityError:
+        raise RuntimeError("such username already exists")
+    db.refresh(db_user)
 
-        return db_user
+    return db_user
 
-    def delete_user(self,  user: models.User):
-        user.username = f'deleted#{user.id}'
-        user.properties = None
-        user.hashed_password = None
 
-        msg_db = message_db.MessageDB()
-        for message in user.sent_messages:
-            msg_db.delete_message(message)
+def delete_user(db: Session, user: models.User):
+    user.username = f'deleted#{user.id}'
+    user.properties = None
+    user.hashed_password = None
 
-        token_db = tkn_db.TokenDB()
-        for token in user.tokens:
-            token_db.expire_token(token)
+    for message in user.sent_messages:
+        msg_db.delete_message(db, message)
 
-        user.is_deleted = True
-        self._db.commit()
+    for token in user.tokens:
+        token_db.expire_token(db, token)
 
-    def get_user(self,  user_id: int) -> models.User:
-        db_user = self._db.get(models.User, user_id)
+    user.is_deleted = True
+    db.commit()
 
-        if db_user is None:
-            raise LookupError(f"unknown user (ID: {user_id})")
 
-        return db_user
+def get_user(db: Session, user_id: int) -> models.User:
+    db_user = db.get(models.User, user_id)
 
-    def find_user(self,  username: str) -> models.User:
-        db_user = self._db.query(models.User).filter(models.User.username == username).first()
+    if db_user is None:
+        raise LookupError(f"unknown user (ID: {user_id})")
 
-        if db_user is None:
-            raise LookupError(f"unknown user (username: {username})")
+    return db_user
 
-        return db_user
 
-    def rename_user(self,  user: models.User, new_username: str):
-        if not validate_username(new_username):
-            raise ValueError(f"new username is too long (>{MAX_USERNAME_LEN})")
+def find_user(db: Session, username: str) -> models.User:
+    db_user = db.query(models.User).filter(models.User.username == username).first()
 
-        user.username = new_username
-        self._db.commit()
+    if db_user is None:
+        raise LookupError(f"unknown user (username: {username})")
 
-    def set_user_password(self,  user: models.User, new_password: str):
-        user.hashed_password = hash_salty(new_password)
-        self._db.commit()
+    return db_user
 
-    def update_user_properties(self,  user: models.User, properties: dict):
-        updated_properties = json2dict(user.properties)
-        updated_properties.update(properties)
 
-        user.properties = dict2json(updated_properties)
-        self._db.commit()
+def rename_user(db: Session, user: models.User, new_username: str):
+    if not validate_username(new_username):
+        raise ValueError(f"new username is too long (>{MAX_USERNAME_LEN})")
 
-    def get_users(self) -> list[models.User]:
-        return self._db.query(models.User).all()
+    user.username = new_username
+    db.commit()
 
-    @staticmethod
-    def validate_credentials(user: models.User, password: str) -> bool:
-        return user.hashed_password == hash_salty(password)
+
+def set_user_password(db: Session, user: models.User, new_password: str):
+    user.hashed_password = hash_salty(new_password)
+    db.commit()
+
+
+def update_user_properties(db: Session, user: models.User, properties: dict):
+    updated_properties = json2dict(user.properties)
+    updated_properties.update(properties)
+
+    user.properties = dict2json(updated_properties)
+    db.commit()
+
+
+def get_users(db: Session) -> list[models.User]:
+    return db.query(models.User).all()
+
+
+def validate_credentials(user: models.User, password: str) -> bool:
+    return user.hashed_password == hash_salty(password)
