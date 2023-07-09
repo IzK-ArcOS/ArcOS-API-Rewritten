@@ -28,7 +28,7 @@ def user_create(user_db: Annotated[UserDB, Depends(get_user_db)], credentials: A
 
     Userspace(fs, user.id)
 
-    return {'error': {'valid': True}}
+    return {'valid': True}
 
 
 @router.get('/properties')
