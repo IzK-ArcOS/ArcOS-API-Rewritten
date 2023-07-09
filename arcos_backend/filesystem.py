@@ -46,7 +46,7 @@ class Userspace:
         self._root = os.path.join(self._fs.get_root(), str(id))
 
         if not os.path.isdir(self._root):
-            os.mkdir(os.path.join(self._root, str(id)))
+            os.mkdir(self._root)
             self._fs.deploy_template(self._id, '.')
 
     def get_root(self):
