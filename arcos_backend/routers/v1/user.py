@@ -10,7 +10,7 @@ from ..._shared import filesystem as fs
 from ..._utils import json2dict, MAX_USERNAME_LEN
 from ...davult import schemas, models
 from ...davult.crud.user import UserDB
-
+from ...filesystem import Userspace
 
 router = APIRouter()
 
@@ -25,7 +25,8 @@ def user_create(user_db: Annotated[UserDB, Depends(get_user_db)], credentials: A
         raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
     except RuntimeError:
         raise HTTPException(status_code=409, detail="username already exists")
-    fs.create_userspace(user.id)
+
+    Userspace(fs, user.id)
 
     return {'error': {'valid': True}}
 

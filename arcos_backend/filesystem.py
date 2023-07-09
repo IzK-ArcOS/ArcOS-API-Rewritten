@@ -15,24 +15,14 @@ class Filesystem:
 
         os.makedirs(self._root, exist_ok=True)
 
-    def deploy_template(self, userspace: int, path: str):
-        self._validate_path(userspace, path)
-        if self._template is None:
-            return
-
-        for (parent, folders, files) in os.walk(self._template, followlinks=True):
-            fullpath = parent[len(self._template) + 1:]
-            for folder in folders:
-                self.mkdir(userspace, os.path.join(path, fullpath, folder))
-            for file in files:
-                with open(os.path.join(parent, file), 'rb') as f:
-                    self.write(userspace, os.path.join(path, fullpath, file), f.read())
-
     def get_userspace_size(self):
         return self._userspace_size
 
     def get_root(self):
         return self._root
+
+    def get_template_path(self):
+        return self._template
 
 
 class Userspace:
@@ -47,7 +37,7 @@ class Userspace:
 
         if not os.path.isdir(self._root):
             os.mkdir(self._root)
-            self._fs.deploy_template(self._id, '.')
+            self.deploy_template('.')
 
     def get_root(self):
         return self._root
@@ -123,6 +113,21 @@ class Userspace:
             paths.extend([os.path.join(dirpath[len(base_path) + 1:], filepath) for filepath in filepaths])
 
         return paths
+
+    def deploy_template(self, path: str):
+        self._validate_path(path)
+
+        template = self._fs.get_template_path()
+        if template is None:
+            return
+
+        for (parent, folders, files) in os.walk(template, followlinks=True):
+            fullpath = parent[len(template) + 1:]
+            for folder in folders:
+                self.mkdir(os.path.join(path, fullpath, folder))
+            for file in files:
+                with open(os.path.join(parent, file), 'rb') as f:
+                    self.write(os.path.join(path, fullpath, file), f.read())
 
     def _validate_path(self, path: str):
         userspace_root = os.path.abspath(self._root)
