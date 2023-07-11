@@ -25,7 +25,7 @@ def get_target(db: Annotated[Session, Depends(get_db)], target: str) -> models.U
     return user_db.find_user(db, base64.b64decode(target).decode('utf-8'))
 
 
-@router.post('/send')
+@router.post('/send', summary="Send the message")
 async def messages_send(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], target: Annotated[models.User, Depends(get_target)]):
     try:
         message = msg_db.send_message(db, schemas.MessageCreate(
@@ -46,7 +46,7 @@ async def messages_send(request: Request, db: Annotated[Session, Depends(get_db)
     }
 
 
-@router.post('/reply')
+@router.post('/reply', summary="Reply to the message")
 async def messages_reply(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: int, target: Annotated[models.User, Depends(get_target)]):
     try:
         message = msg_db.send_message(db, schemas.MessageCreate(
@@ -69,7 +69,7 @@ async def messages_reply(request: Request, db: Annotated[Session, Depends(get_db
     }
 
 
-@router.get('/get')
+@router.get('/get', summary="Get contents of the message")
 def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: Annotated[int, Depends(get_id)]):
     try:
         message = msg_db.get_message(db, id)
@@ -96,7 +96,7 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
     }
 
 
-@router.get('/delete')
+@router.get('/delete', summary="Delete the message")
 def messages_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: Annotated[int, Depends(get_id)]):
     try:
         message = msg_db.get_message(db, id)
@@ -109,7 +109,7 @@ def messages_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[mod
     msg_db.delete_message(db, message)
 
 
-@router.get('/list')
+@router.get('/list', summary="Get all sent and received messages")
 def messages_list(user: Annotated[models.User, Depends(auth_bearer)]):
     return {
         'valid': True,
@@ -141,7 +141,7 @@ def _expand_message_replies(db: Session, user: models.User, message: models.Mess
     }
 
 
-@router.get('/thread')
+@router.get('/thread', summary="Get the thread")
 def messages_thread(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: Annotated[int, Depends(get_id)]):
     message = msg_db.get_message(db, id)
 
