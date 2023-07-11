@@ -110,7 +110,7 @@ def messages_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[mod
 
 
 @router.get('/list')
-def messages_get(user: Annotated[models.User, Depends(auth_bearer)]):
+def messages_list(user: Annotated[models.User, Depends(auth_bearer)]):
     return {
         'valid': True,
         'data': [{
