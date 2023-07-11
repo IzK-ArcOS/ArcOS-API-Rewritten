@@ -13,7 +13,7 @@ from ...davult.crud import token as token_db, user as user_db
 router = APIRouter(tags=[EndpointTags.sessions])
 
 
-@router.get('/auth')
+@router.get('/auth', summary="Create session")
 def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
@@ -34,7 +34,7 @@ def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[s
     return {'data': {'username': user.username, 'token': token.value}, 'valid': True, "error": {"title": "", "message": ""}}
 
 
-@router.get('/logoff')
+@router.get('/logoff', summary="Expire session")
 def logoff(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
