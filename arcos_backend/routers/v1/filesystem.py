@@ -5,11 +5,13 @@ from fastapi import APIRouter, HTTPException, Response, Depends
 from starlette.requests import Request
 
 from ._common import auth_bearer, get_path
+from .. import EndpointTags
 from ..._shared import filesystem as fs
 from ...davult import models
 from ...filesystem import Userspace
 
-router = APIRouter()
+
+router = APIRouter(tags=[EndpointTags.filesystem])
 
 
 @router.get('/quota')

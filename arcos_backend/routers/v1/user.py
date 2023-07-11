@@ -7,13 +7,15 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from ._common import auth_basic, auth_bearer, get_db
+from .. import EndpointTags
 from ..._shared import filesystem as fs
 from ..._utils import json2dict, MAX_USERNAME_LEN
 from ...davult import schemas, models
 from ...davult.crud import user as user_db
 from ...filesystem import Userspace
 
-router = APIRouter()
+
+router = APIRouter(tags=[EndpointTags.users])
 
 
 @router.get('/create')

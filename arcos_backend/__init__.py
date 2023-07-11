@@ -7,6 +7,7 @@ from .davult import models
 from .davult.database import engine
 
 from .filesystem import Filesystem
+from .routers import TAGS_DOCS
 from .routers.v1 import server, token, user, users, filesystem, messages
 from .authentication import AuthCodeMiddleware
 
@@ -18,7 +19,11 @@ def get_cfg():
 models.Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title=cfg['info']['name'], version="always evolving :b")
+app = FastAPI(
+    title=cfg['info']['name'],
+    version="always evolving :b",
+    openapi_tags=TAGS_DOCS
+)
 
 
 # tells cors to fuck off

@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 
+from .. import EndpointTags
 from ..._shared import configuration as cfg, API_REVISION
 
 
-router = APIRouter()
+router = APIRouter(tags=[EndpointTags.server])
 
 
 @router.get('/connect')

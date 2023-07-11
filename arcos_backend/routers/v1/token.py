@@ -4,12 +4,13 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from ._common import auth_basic, get_db
+from .. import EndpointTags
 from ..._shared import configuration as cfg
 from ...davult import schemas
 from ...davult.crud import token as token_db, user as user_db
 
 
-router = APIRouter()
+router = APIRouter(tags=[EndpointTags.sessions])
 
 
 @router.get('/auth')

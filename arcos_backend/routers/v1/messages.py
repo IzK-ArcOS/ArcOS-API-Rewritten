@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from ._common import get_db, auth_bearer, adapt_timestamp
+from .. import EndpointTags
 from ...davult import models, schemas
 from ...davult.crud import message as msg_db, user as user_db
 
@@ -13,7 +14,7 @@ from ...davult.crud import message as msg_db, user as user_db
 MESSAGE_PREVIEW_BODY_LEN = 30
 
 
-router = APIRouter()
+router = APIRouter(tags=[EndpointTags.messages])
 
 
 def get_id(id: str) -> int:

@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ._common import get_db
+from .. import EndpointTags
 from ..._utils import json2dict
 from ...davult.crud import user as user_db
 
 
-router = APIRouter()
+router = APIRouter(tags=[EndpointTags.users])
 
 
 @router.get('/get')
