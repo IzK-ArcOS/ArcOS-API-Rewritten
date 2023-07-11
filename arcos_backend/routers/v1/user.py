@@ -18,7 +18,7 @@ from ...filesystem import Userspace
 router = APIRouter(tags=[EndpointTags.users])
 
 
-@router.get('/create')
+@router.get('/create', summary="Create new user")
 def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
@@ -34,12 +34,12 @@ def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[
     return {'valid': True}
 
 
-@router.get('/properties')
+@router.get('/properties', summary="Get user properties")
 def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
     return {**json2dict(user.properties), 'valid': True, 'statusCode': 200}
 
 
-@router.post('/properties/update')
+@router.post('/properties/update', summary="Update user properties")
 async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     try:
         properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
@@ -49,14 +49,14 @@ async def user_properties_update(request: Request, db: Annotated[Session, Depend
     user_db.update_user_properties(db, user, properties)
 
 
-@router.get('/delete')
+@router.get('/delete', summary="Delete the user")
 def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
     user_db.delete_user(db, user)
     userspace.delete()
 
 
-@router.get('/rename')
+@router.get('/rename', summary="Change user's username")
 def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], newname: str):
     newname = base64.b64decode(newname).decode('utf-8')
     try:
@@ -65,7 +65,7 @@ def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
         raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
 
 
-@router.get('/changepswd')
+@router.get('/changepswd', summary="Change user's password")
 def user_changepswd(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)], new: str):
     new = base64.b64decode(new).decode('utf-8')
     username, password = credentials

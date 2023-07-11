@@ -12,7 +12,7 @@ from ...davult.crud import user as user_db
 router = APIRouter(tags=[EndpointTags.users])
 
 
-@router.get('/get')
+@router.get('/get', summary="Get the list of users")
 def users_get(db: Annotated[Session, Depends(get_db)]):
     users = user_db.get_users(db)
 
