@@ -7,7 +7,7 @@ from ..._shared import configuration as cfg, API_REVISION
 router = APIRouter(tags=[EndpointTags.server])
 
 
-@router.get('/connect')
+@router.get('/connect', summary="Get ArcAPI instance information")
 def connect():
     return {
         'platform': f"ArcOS @ {cfg['info']['name']}",
