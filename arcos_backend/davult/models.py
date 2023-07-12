@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, Foreig
 from sqlalchemy.orm import relationship
 
 from .database import Base
-from .._utils import dict2json
+from .._utils import dict2json, json2dict
 
 
 with open(os.path.join("arcos_backend", "assets", "default", "properties.default.json")) as f:
@@ -56,3 +56,7 @@ class User(Base):
     tokens = relationship("Token", back_populates="owner")
     sent_messages = relationship("Message", back_populates="sender", foreign_keys=Message.sender_id)
     received_messages = relationship("Message", back_populates="receiver", foreign_keys=Message.receiver_id)
+
+
+def is_enabled(user: User) -> bool:
+    return json2dict(user.properties)['acc']['enabled']

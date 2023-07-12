@@ -7,6 +7,7 @@ from ._common import auth_basic, get_db
 from .. import EndpointTags
 from ..._shared import configuration as cfg
 from ...davult import schemas
+from ...davult.models import is_enabled
 from ...davult.crud import token as token_db, user as user_db
 
 
@@ -21,6 +22,9 @@ def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[s
         user = user_db.find_user(db, username)
     except LookupError:
         raise HTTPException(status_code=404, detail="user not found")
+
+    if not is_enabled(user):
+        raise HTTPException(status_code=403, detail="user is disabled")
 
     try:
         token = token_db.generate_token(db, schemas.TokenCreate(

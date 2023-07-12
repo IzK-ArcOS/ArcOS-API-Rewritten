@@ -8,6 +8,7 @@ filesystem:
 
 security:
   auth_code: null
+  admin_code: null  # `null` means admin is disabled
   token_lifetime: 604800  # 1 week in seconds
 
 storage:

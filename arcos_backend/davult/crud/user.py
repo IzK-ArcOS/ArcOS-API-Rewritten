@@ -83,6 +83,18 @@ def set_user_password(db: Session, user: models.User, new_password: str):
     db.commit()
 
 
+def set_user_state(db: Session, user: models.User, state: bool):
+    properties = json2dict(user.properties)
+    properties['acc']['enabled'] = state
+    user.properties = dict2json(properties)
+    db.commit()
+
+    # if banning -> invalidate all tokens
+    if not state:
+        for token in user.tokens:
+            token_db.expire_token(db, token)
+
+
 def update_user_properties(db: Session, user: models.User, properties: dict):
     updated_properties = json2dict(user.properties)
     updated_properties.update(properties)

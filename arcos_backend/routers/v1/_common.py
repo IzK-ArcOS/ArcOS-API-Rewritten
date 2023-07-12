@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import HTTPException, Header, Depends
 from sqlalchemy.orm import Session
 
+from ..._shared import configuration as cfg
 from ...davult import models
 from ...davult.database import LocalSession
 from ...davult.crud import token as token_db
@@ -44,6 +45,16 @@ def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotate
         raise HTTPException(status_code=403, detail="invalid token")
 
     return user
+
+
+def auth_admin(authorization: Annotated[str, Header()]):
+    admin_code = cfg['security']['admin_code']
+
+    if admin_code is None:
+        raise HTTPException(status_code=403, detail="admin is disabled")
+
+    if authorization != admin_code:
+        raise HTTPException(status_code=403, detail="invalid code")
 
 
 def get_path(path: str) -> str:
