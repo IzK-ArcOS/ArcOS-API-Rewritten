@@ -7,6 +7,7 @@ class EndpointTags(StrEnum):
     users = "users"
     sessions = "sessions"
     server = "server"
+    admin = "admin"
 
 
 TAGS_DOCS = [
@@ -29,5 +30,9 @@ TAGS_DOCS = [
     {
         'name': EndpointTags.server,
         'description': "ArcAPI instance information"
+    },
+    {
+        'name': EndpointTags.admin,
+        'description': "Administration of user accounts"
     }
 ]
