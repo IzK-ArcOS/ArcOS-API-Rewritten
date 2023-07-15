@@ -16,9 +16,15 @@ def hash_salty(password: str) -> str:
     return hashlib.sha512((salt + password).encode('utf-8'), usedforsecurity=True).hexdigest()
 
 
-def dict2json(o: dict) -> str:
+def dict2json(o: dict | None) -> str:
+    if o is None:
+        return "{}"
+
     return json.JSONEncoder().encode(o)
 
 
 def json2dict(s: str) -> dict:
+    if s == "null":
+        return {}
+
     return json.JSONDecoder().decode(s)
