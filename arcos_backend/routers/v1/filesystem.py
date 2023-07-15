@@ -42,7 +42,7 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
     base_path = userspace.get_root()
 
-    _name = lambda s: s[s.rfind('/') + 1:]  # NOQA E731
+    _name = lambda s: s[s.rfind(os.sep) + 1:]  # NOQA E731
     _scope = lambda s: s[len(base_path)+1:]  # NOQA E731
 
     return {
@@ -155,6 +155,6 @@ def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
         'data': [{
             'scopedPath': path,
             'mime': userspace.get_mime(path),
-            'filename': path[path.rfind('/') + 1:]
+            'filename': path[path.rfind(os.sep) + 1:]
         } for path in paths]
     }
