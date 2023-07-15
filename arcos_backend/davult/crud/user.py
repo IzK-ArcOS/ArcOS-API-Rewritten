@@ -41,15 +41,14 @@ def delete_user(db: Session, user: models.User):
     user.username = f'deleted#{user.id}'
     user.properties = "{}"
     user.hashed_password = None
+    user.is_deleted = True
+    db.commit()
 
     for message in user.sent_messages:
         msg_db.delete_message(db, message)
 
     for token in user.tokens:
         token_db.expire_token(db, token)
-
-    user.is_deleted = True
-    db.commit()
 
 
 def get_user(db: Session, user_id: int) -> models.User:
