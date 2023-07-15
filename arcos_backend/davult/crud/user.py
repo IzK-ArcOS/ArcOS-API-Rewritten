@@ -39,7 +39,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
 
 def delete_user(db: Session, user: models.User):
     user.username = f'deleted#{user.id}'
-    user.properties = None
+    user.properties = "{}"
     user.hashed_password = None
 
     for message in user.sent_messages:
