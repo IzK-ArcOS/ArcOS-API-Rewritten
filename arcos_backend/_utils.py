@@ -24,7 +24,7 @@ def dict2json(o: dict | None) -> str:
 
 
 def json2dict(s: str) -> dict:
-    if s == "null":
+    if s == "null" or s is None:
         return {}
 
     return json.JSONDecoder().decode(s)
