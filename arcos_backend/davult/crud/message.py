@@ -41,6 +41,10 @@ def get_message(db: Session, message_id: int) -> models.Message:
     return message
 
 
+def get_message_timestamp(message: models.Message) -> float:
+    return message.sent_time.timestamp()
+
+
 def mark_read(db: Session, message: models.Message):
     if message.is_read:
         return
