@@ -6,7 +6,7 @@ import yaml
 from .filesystem import Filesystem
 
 
-API_REVISION = 1
+API_REVISION = 2
 
 
 configuration: dict
