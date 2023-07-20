@@ -1,3 +1,4 @@
+import json
 import random
 from datetime import datetime
 
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from . import message as msg_db, token as token_db
 from .. import models, schemas
-from ..._utils import hash_salty, validate_username, dict2json, json2dict, MAX_USERNAME_LEN
+from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
@@ -18,7 +19,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     user = user.dict()
 
     del user['password']
-    user['properties'] = dict2json(user['properties'])
+    user['properties'] = json.dumps(user['properties'])
 
     db_user = models.User(
         **user,
@@ -83,9 +84,9 @@ def set_user_password(db: Session, user: models.User, new_password: str):
 
 
 def set_user_state(db: Session, user: models.User, state: bool):
-    properties = json2dict(user.properties)
+    properties = json.loads(user.properties)
     properties['acc']['enabled'] = state
-    user.properties = dict2json(properties)
+    user.properties = json.dumps(properties)
     db.commit()
 
     # if banning -> invalidate all tokens
@@ -95,10 +96,9 @@ def set_user_state(db: Session, user: models.User, state: bool):
 
 
 def update_user_properties(db: Session, user: models.User, properties: dict):
-    updated_properties = json2dict(user.properties)
+    updated_properties = json.loads(user.properties)
     updated_properties.update(properties)
-
-    user.properties = dict2json(updated_properties)
+    user.properties = json.dumps(updated_properties)
     db.commit()
 
 

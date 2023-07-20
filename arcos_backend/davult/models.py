@@ -5,12 +5,11 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, Foreig
 from sqlalchemy.orm import relationship
 
 from .database import Base
-from .._utils import dict2json, json2dict
 
 
 with open(os.path.join("arcos_backend", "assets", "default", "properties.default.json")) as f:
     USER_DEFAULT_PROPERTIES = json.load(f)
-    USER_DEFAULT_PROPERTIES_STR = dict2json(USER_DEFAULT_PROPERTIES)
+    USER_DEFAULT_PROPERTIES_STR = json.dumps(USER_DEFAULT_PROPERTIES)
 
 
 class Token(Base):
@@ -59,4 +58,4 @@ class User(Base):
 
 
 def is_enabled(user: User) -> bool:
-    return json2dict(user.properties)['acc']['enabled']
+    return json.loads(user.properties)['acc']['enabled']

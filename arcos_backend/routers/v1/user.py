@@ -9,7 +9,7 @@ from starlette.requests import Request
 from ._common import auth_basic, auth_bearer, get_db
 from .. import EndpointTags
 from ..._shared import filesystem as fs
-from ..._utils import json2dict, MAX_USERNAME_LEN
+from ..._utils import MAX_USERNAME_LEN
 from ...davult import schemas, models
 from ...davult.crud import user as user_db
 from ...filesystem import Userspace
@@ -36,7 +36,7 @@ def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[
 
 @router.get('/properties', summary="Get user properties")
 def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
-    return {**json2dict(user.properties), 'valid': True, 'statusCode': 200}
+    return {**json.loads(user.properties), 'valid': True, 'statusCode': 200}
 
 
 @router.post('/properties/update', summary="Update user properties")
