@@ -2,6 +2,8 @@ import magic
 import os
 import shutil
 
+from sqlalchemy.orm import Session
+
 
 class Filesystem:
     _root: str
@@ -96,9 +98,23 @@ class Userspace:
 
     def get_size(self, path: str) -> int:
         self._validate_path(path)
-        # yes this is a oneliner, why? ngl idk, so... why not™
-        # i am too lazy to redo the thing at this point
-        return sum(sum(os.path.getsize(os.path.join(dirpath, file)) for file in files) for dirpath, files, _ in os.walk(walk_path)) if os.path.isdir(walk_path := os.path.join(self._root, path)) else os.path.getsize(os.path.join(walk_path))
+
+        internal_path = os.path.join(self._root, path)
+
+        if os.path.isfile(path):
+            return os.path.getsize(internal_path)
+
+        directory_size = 0
+
+        for dirpath, files, _ in os.walk(internal_path):
+            subdirectory_size = 0
+
+            for file in files:
+                subdirectory_size += os.path.getsize(os.path.join(dirpath, file))
+
+            directory_size += subdirectory_size
+
+        return directory_size
 
     def get_mime(self, path: str) -> str:
         self._validate_path(path)
