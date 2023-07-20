@@ -19,12 +19,13 @@ router = APIRouter(tags=[EndpointTags.filesystem])
 def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
 
+    size = fs.get_userspace_size()
     used = userspace.get_size('.')
 
     return {
         'data': {
             'username': user.username,
-            'max': (size := fs.get_userspace_size()),
+            'max': size,
             'used': used,
             'free': size - used
         },
