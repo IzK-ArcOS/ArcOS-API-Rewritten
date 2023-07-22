@@ -44,9 +44,9 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
     base_path = userspace.get_root()
 
-    _norm = lambda path: os.path.normpath(path)
-    _name = lambda path: path[path.rfind(os.sep) + 1:]  # NOQA E731
-    _scope = lambda path: _norm(path[len(base_path) + 1:])  # NOQA E731
+    def _norm(path): return os.path.normpath(path)
+    def _name(path): return path[path.rfind(os.sep) + 1:]  # NOQA E731
+    def _scope(path): return _norm(path[len(base_path) + 1:])  # NOQA E731
 
     return {
         'valid': True,
@@ -75,6 +75,8 @@ def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Anno
         userspace.mkdir(path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
+    except FileExistsError:
+        raise HTTPException(status_code=409)
 
     return {'valid': True}
 
@@ -105,7 +107,8 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(
+            status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/cp', summary="Copy the file or the directory")
@@ -119,7 +122,8 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(
+            status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/rm', summary="Delete the file or the directory")
@@ -134,7 +138,7 @@ def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[st
 
 @router.get('/rename', summary="Rename (move) the file or the directory")
 def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
-    _b64 = lambda s: base64.b64decode(s).decode('utf-8')  # NOQA E731
+    def _b64(s): return base64.b64decode(s).decode('utf-8')  # NOQA E731
 
     userspace = Userspace(fs, user.id)
 
