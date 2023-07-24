@@ -74,6 +74,10 @@ class Userspace:
         self._validate(path)
         return [self._scope(path) for path in self._fs.get_tree(self._path_id.joinpath(path))]
 
+    def get_stat(self, path: PathLike | str):
+        self._validate(path)
+        return self._fs.get_stat(self._path_id.joinpath(path))
+
     def deploy_template(self, path: PathLike | str):
         self._validate(path)
         self._fs.deploy_template(self._path_id.joinpath(path))

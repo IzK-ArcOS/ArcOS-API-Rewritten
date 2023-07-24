@@ -84,6 +84,9 @@ class Filesystem:
     def get_tree(self, path: PathLike | str):
         return self._root.joinpath(path).rglob("*")
 
+    def get_stat(self, path: PathLike | str):
+        return self._root.joinpath(path).stat()
+
     def deploy_template(self, path: PathLike | str):
         if self._template is None:
             return

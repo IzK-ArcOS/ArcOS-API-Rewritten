@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Response, Depends
 from starlette.requests import Request
 
-from ._common import auth_bearer, get_path
+from ._common import auth_bearer, get_path, adapt_timestamp
 from .. import EndpointTags
 from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
@@ -60,7 +60,10 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
                 'scopedPath': _scope(file, 3),
                 # FIXME wtf
                 'size': userspace._fs.get_size(_adapt(_scope(_adapt(file), 4))),
-                'mime': userspace._fs.get_mime(_adapt(_scope(_adapt(file), 4)))
+                'mime': userspace._fs.get_mime(_adapt(_scope(_adapt(file), 4))),
+                # on linux file creation timestamp is a bit broky, more precisely it shows last metadata modification
+                'dateCreated': adapt_timestamp((stat := userspace.get_stat(_scope(_adapt(file), 4))).st_ctime),
+                'dateModified': adapt_timestamp(stat.st_mtime)
             } for file in files],
             'directories': [{
                 'name': Path(directory).name,
