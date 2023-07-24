@@ -4,14 +4,14 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from .user import validate_credentials, get_user
+from . import user as user_db
 from .. import models, schemas
 
 
 def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
-    owner = get_user(db, token.owner_id)
+    owner = user_db.get_user(db, token.owner_id)
 
-    if not validate_credentials(owner, token.password):
+    if not user_db.validate_credentials(owner, token.password):
         raise ValueError("invalid credentials")
 
     db_token = models.Token(

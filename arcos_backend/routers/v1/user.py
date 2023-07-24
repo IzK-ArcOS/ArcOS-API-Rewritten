@@ -12,7 +12,7 @@ from ..._shared import filesystem as fs
 from ..._utils import MAX_USERNAME_LEN
 from ...davult import schemas, models
 from ...davult.crud import user as user_db
-from ...filesystem import Userspace
+from ...filesystem.userspace import Userspace
 
 
 router = APIRouter(tags=[EndpointTags.users])

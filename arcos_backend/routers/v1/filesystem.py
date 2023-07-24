@@ -9,7 +9,7 @@ from ._common import auth_bearer, get_path
 from .. import EndpointTags
 from ..._shared import filesystem as fs
 from ...davult import models
-from ...filesystem import Userspace
+from ...filesystem.userspace import Userspace
 
 
 router = APIRouter(tags=[EndpointTags.filesystem])
@@ -42,11 +42,11 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 
-    base_path = userspace.get_root()
+    # base_path = userspace.get_root()
 
-    def _norm(path): return os.path.normpath(path)
-    def _name(path): return path[path.rfind(os.sep) + 1:]  # NOQA E731
-    def _scope(path): return _norm(path[len(base_path) + 1:])  # NOQA E731
+    _norm = lambda path: os.path.normpath(path)
+    _name = lambda path: path[path.rfind(os.sep) + 1:]  # NOQA E731
+    _scope = lambda path: _norm(path[path.find(os.sep) + 1:])  # NOQA E731
 
     return {
         'valid': True,
@@ -55,9 +55,9 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
             'scopedPath': path,
             'files': [{
                 'filename': _name(file),
-                'scopedPath': (scoped := _scope(file)),
-                'size': userspace.get_size(scoped),
-                'mime': userspace.get_mime(scoped)
+                'scopedPath': _scope(file),
+                'size': userspace._fs.get_size(file),
+                'mime': userspace._fs.get_mime(file)
             } for file in files],
             'directories': [{
                 'name': _name(directory),
@@ -107,8 +107,7 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(
-            status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/cp', summary="Copy the file or the directory")
@@ -122,8 +121,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(
-            status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
 
 
 @router.get('/rm', summary="Delete the file or the directory")
@@ -138,7 +136,7 @@ def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[st
 
 @router.get('/rename', summary="Rename (move) the file or the directory")
 def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
-    def _b64(s): return base64.b64decode(s).decode('utf-8')  # NOQA E731
+    _b64 = lambda s: base64.b64decode(s).decode('utf-8')  # NOQA E731
 
     userspace = Userspace(fs, user.id)
 
