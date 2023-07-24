@@ -1,5 +1,6 @@
 import os
 import base64
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Response, Depends
@@ -44,24 +45,23 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
     # base_path = userspace.get_root()
 
+    _scope = lambda path, level: (path := Path(path)).relative_to(path.parents[-level])
     _norm = lambda path: os.path.normpath(path)
-    _name = lambda path: path[path.rfind(os.sep) + 1:]  # NOQA E731
-    _scope = lambda path: _norm(path[path.find(os.sep) + 1:])  # NOQA E731
 
     return {
         'valid': True,
         'data': {
-            'name': _name(path := _norm(path)),
-            'scopedPath': path,
+            'name': Path(path).name,
+            'scopedPath': _norm(path),
             'files': [{
-                'filename': _name(file),
-                'scopedPath': _scope(file),
-                'size': userspace._fs.get_size(file),
-                'mime': userspace._fs.get_mime(file)
+                'filename': file.name,
+                'scopedPath': _scope(file, 3),
+                'size': userspace._fs.get_size(_scope(file, 2)),
+                'mime': userspace._fs.get_mime(_scope(file, 2))
             } for file in files],
             'directories': [{
-                'name': _name(directory),
-                'scopedPath': _scope(directory)
+                'name': Path(directory).name,
+                'scopedPath': _scope(directory, 3)
             } for directory in directories]
         }
     }

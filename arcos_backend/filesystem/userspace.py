@@ -1,20 +1,24 @@
-import os
+from os import PathLike
+from pathlib import Path
 
 from arcos_backend import Filesystem
 
 
+# TODO make it inherit `Filesystem` instead
 class Userspace:
     _id: int
     _fs: Filesystem
-    _root: str
+    _path_id: Path
+    _root: Path
 
     def __init__(self, fs: Filesystem, id: int):
         self._fs = fs
         self._id = id
-        self._root = os.path.join(self._fs.get_root(), str(id))
+        self._path_id = Path(str(id))
+        self._root = self._fs.get_root().joinpath(str(id))
 
-        if not os.path.isdir(self._root):
-            os.mkdir(self._root)
+        if not self._root.exists():
+            self._root.mkdir(parents=True)
             self.deploy_template('.')
 
     def get_root(self):
@@ -23,68 +27,64 @@ class Userspace:
     def delete(self):
         self._fs.remove(str(self._id))
 
-    def mkdir(self, path: str):
+    def mkdir(self, path: PathLike | str):
         self._validate(path)
-        self._fs.mkdir(self._adapt(path))
+        self._fs.mkdir(self._path_id.joinpath(path))
 
-    def listdir(self, path: str):
+    def listdir(self, path: PathLike | str):
         self._validate(path)
-        files, directories = self._fs.listdir(self._adapt(path))
+        files, directories = self._fs.listdir(self._path_id.joinpath(path))
 
         files = [self._scope(file) for file in files]
         directories = [self._scope(directory) for directory in directories]
 
         return files, directories
 
-    def write(self, path: str, data: bytes):
+    def write(self, path: PathLike | str, data: bytes):
         self._validate(path)
-        self._fs.write(self._adapt(path), data)
+        self._fs.write(self._path_id.joinpath(path), data)
 
-    def remove(self, path: str):
+    def remove(self, path: PathLike | str):
         self._validate(path)
-        self._fs.remove(self._adapt(path))
+        self._fs.remove(self._path_id.joinpath(path))
 
-    def move(self, source: str, destination: str):
+    def move(self, source: PathLike | str, destination: PathLike | str):
         self._validate(source)
         self._validate(destination)
-        self._fs.move(self._adapt(source), self._adapt(destination))
+        self._fs.move(self._path_id.joinpath(source),
+                      self._path_id.joinpath(destination))
 
-    def copy(self, source: str, destination: str):
+    def copy(self, source: PathLike | str, destination: PathLike | str):
         self._validate(source)
         self._validate(destination)
-        self._fs.copy(self._adapt(source), self._adapt(destination))
+        self._fs.copy(self._path_id.joinpath(source),
+                      self._path_id.joinpath(destination))
 
-    def read(self, path: str) -> bytes:
+    def read(self, path: PathLike | str) -> bytes:
         self._validate(path)
-        return self._fs.read(self._adapt(path))
+        return self._fs.read(self._path_id.joinpath(path))
 
-    def get_size(self, path: str) -> int:
+    def get_size(self, path: PathLike | str) -> int:
         self._validate(path)
-        return self._fs.get_size(self._adapt(path))
+        return self._fs.get_size(self._path_id.joinpath(path))
 
-    def get_mime(self, path: str) -> str:
+    def get_mime(self, path: PathLike | str) -> str:
         self._validate(path)
-        return self._fs.get_mime(self._adapt(path))
+        return self._fs.get_mime(self._path_id.joinpath(path))
 
-    def get_tree(self, path: str):
+    def get_tree(self, path: PathLike | str):
         self._validate(path)
-        return [path[path.find(os.sep) + 1:] for path in self._fs.get_tree(self._adapt(path))]
+        return [self._scope(path) for path in self._fs.get_tree(self._path_id.joinpath(path))]
 
-    def deploy_template(self, path: str):
+    def deploy_template(self, path: PathLike | str):
         self._validate(path)
-        self._fs.deploy_template(self._adapt(path))
+        self._fs.deploy_template(self._path_id.joinpath(path))
 
-    def _scope(self, path: os.PathLike) -> str:
-        path = str(path)
-        path = path[path.find('/') + 1:]
-        return path[path.find('/') + 1:]
+    @staticmethod
+    def _scope(path: PathLike | str):
+        return (path := Path(path)).relative_to(path.parents[-2])
 
-    def _adapt(self, path: str) -> str:
-        return os.path.normpath(os.path.join(str(self._id), path))
-
-    def _validate(self, path: str):
-        userspace_root = os.path.abspath(self._root)
-        requested_path = os.path.abspath(os.path.join(userspace_root, path))
-
-        if not requested_path.startswith(userspace_root):
+    def _validate(self, path: PathLike | str):
+        requested_path = self._root.joinpath(path)
+        if not requested_path.is_relative_to(self._root):
             raise ValueError("path breaks out of the filesystem")
