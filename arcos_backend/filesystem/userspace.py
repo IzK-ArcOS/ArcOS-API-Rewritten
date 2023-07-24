@@ -79,11 +79,11 @@ class Userspace:
         self._fs.deploy_template(self._path_id.joinpath(path))
 
     @staticmethod
-    def _scope(path: PathLike | str):
-        return (path := Path(path)).relative_to(path.parents[-2])
+    def _scope(path: PathLike | str, level: int = 2):
+        return (path := Path(path)).relative_to(path.parents[-level])
 
     def _validate(self, *paths: PathLike | str):
         for path in paths:
             requested_path = self._root.joinpath(path)
-            if not requested_path.is_relative_to(self._root):
+            if not requested_path.resolve().is_relative_to(self._root.absolute()):
                 raise ValueError("path breaks out of the filesystem")
