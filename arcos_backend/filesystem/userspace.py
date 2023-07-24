@@ -49,14 +49,12 @@ class Userspace:
         self._fs.remove(self._path_id.joinpath(path))
 
     def move(self, source: PathLike | str, destination: PathLike | str):
-        self._validate(source)
-        self._validate(destination)
+        self._validate(source, destination)
         self._fs.move(self._path_id.joinpath(source),
                       self._path_id.joinpath(destination))
 
     def copy(self, source: PathLike | str, destination: PathLike | str):
-        self._validate(source)
-        self._validate(destination)
+        self._validate(source, destination)
         self._fs.copy(self._path_id.joinpath(source),
                       self._path_id.joinpath(destination))
 
@@ -84,7 +82,8 @@ class Userspace:
     def _scope(path: PathLike | str):
         return (path := Path(path)).relative_to(path.parents[-2])
 
-    def _validate(self, path: PathLike | str):
-        requested_path = self._root.joinpath(path)
-        if not requested_path.is_relative_to(self._root):
-            raise ValueError("path breaks out of the filesystem")
+    def _validate(self, *paths: PathLike | str):
+        for path in paths:
+            requested_path = self._root.joinpath(path)
+            if not requested_path.is_relative_to(self._root):
+                raise ValueError("path breaks out of the filesystem")
