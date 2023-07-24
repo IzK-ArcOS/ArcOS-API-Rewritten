@@ -1,21 +1,21 @@
-import json
-import os
+from os import PathLike
+from pathlib import Path
 import shutil
 
 import magic
 
 
 class Filesystem:
-    _root: str
-    _template: str | None
+    _root: Path
+    _template: Path | None
     _userspace_size: int
 
-    def __init__(self, root_path: str, template_path: str | None, userspace_size: int):
-        self._root = root_path
-        self._template = template_path
+    def __init__(self, root_path: PathLike | str, template_path: PathLike | str | None, userspace_size: int):
+        self._root = Path(root_path)
+        self._template = Path(template_path)
         self._userspace_size = userspace_size
 
-        os.makedirs(self._root, exist_ok=True)
+        self._root.mkdir(parents=True, exist_ok=True)
 
     def get_userspace_size(self):
         return self._userspace_size
@@ -26,90 +26,66 @@ class Filesystem:
     def get_template_path(self):
         return self._template
 
-    def mkdir(self, path: str):
-        os.mkdir(os.path.join(self._root, path))
+    def mkdir(self, path: PathLike | str):
+        self._root.joinpath(path).mkdir(exist_ok=True)
 
-    def listdir(self, path: str):
-        path = self._adapt(path)
+    def listdir(self, path: PathLike | str):
         files, directories = [], []
 
-        for felder in os.listdir(path):
-            fullpath = os.path.join(path, felder)
-            if os.path.isfile(fullpath):
-                files.append(fullpath)
-            else:
-                directories.append(fullpath)
+        path = self._root.joinpath(path)
+        for child in path.iterdir():
+            if child.is_file():
+                files.append(child)
+            elif child.is_dir():
+                directories.append(child)
 
         return files, directories
 
-    def write(self, path: str, data: bytes):
+    def write(self, path: PathLike | str, data: bytes):
         if self.get_size('.') + len(data) > self._userspace_size:
             raise RuntimeError("data is too large (not enough space)")
 
-        with open(os.path.join(self._root, path), 'wb') as f:
-            f.write(data)
+        self._root.joinpath(path).write_bytes(data)
 
-
-    def remove(self, path: str):
-        path = os.path.join(self._root, path)
-
-        if os.path.isdir(path):
-            shutil.rmtree(path)
+    def remove(self, path: PathLike | str):
+        path = self._root.joinpath(path)
+        if path.is_dir():
+            path.rmdir()
         else:
-            os.unlink(path)
+            path.unlink()
 
-    def move(self, source: str, destination: str):
-        shutil.move(os.path.join(self._root, source),
-                    os.path.join(self._root, destination))
+    def move(self, source: PathLike | str, destination: PathLike | str):
+        shutil.move(self._root.joinpath(source),
+                    self._root.joinpath(destination))
 
-    def read(self, path: str) -> bytes:
-        with open(os.path.join(self._root, path), 'rb') as f:
-            return f.read()
+    def copy(self, source: PathLike | str, destination: PathLike | str):
+        shutil.copy(self._root.joinpath(source),
+                    self._root.joinpath(destination))
 
-    def get_size(self, path: str) -> int:
-        internal_path = os.path.join(self._root, path)
+    def read(self, path: PathLike | str) -> bytes:
+        return self._root.joinpath(path).read_bytes()
 
-        if os.path.isfile(internal_path):
-            return os.path.getsize(internal_path)
+    def get_size(self, path: PathLike | str) -> int:
+        path = self._root.joinpath(path)
+
+        if path.is_file():
+            return path.stat().st_size
 
         directory_size = 0
 
-        for dirpath, _, files in os.walk(internal_path):
-            if not files:
-                continue
-
-            subdirectory_size = 0
-
-            for file in files:
-                subdirectory_size += os.path.getsize(os.path.join(dirpath, file))
-
-            directory_size += subdirectory_size
+        for child in path.rglob("*"):
+            directory_size += child.stat().st_size
 
         return directory_size
 
-    def get_mime(self, path: str) -> str:
-        return magic.from_file(os.path.join(self._root, path), mime=True)
+    def get_mime(self, path: PathLike | str) -> str:
+        return magic.from_file(self._root.joinpath(path), mime=True)
 
-    def get_tree(self, path: str):
-        base_path = self._root
+    def get_tree(self, path: PathLike | str):
+        return self._root.joinpath(path).rglob("*")
 
-        paths = []
-        for dirpath, _, filepaths in os.walk(os.path.join(base_path, path)):
-            paths.extend([os.path.join(dirpath[len(base_path) + 1:], filepath) for filepath in filepaths])
-
-        return paths
-
-    def deploy_template(self, path: str):
+    def deploy_template(self, path: PathLike | str):
         if self._template is None:
             return
 
-        for (parent, folders, files) in os.walk(self._template, followlinks=True):
-            fullpath = parent[len(self._template) + 1:]
-            for folder in folders:
-                self.mkdir(os.path.join(path, fullpath, folder))
-            for file in files:
-                with open(os.path.join(parent, file), 'rb') as f:
-                    self.write(os.path.join(path, fullpath, file), f.read())
-
-    def _adapt(self, path: str) -> str:
-        return os.path.normpath(os.path.join(self._root, path))
+        shutil.copy(self._template, self._root.joinpath(path))

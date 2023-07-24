@@ -49,6 +49,11 @@ class Userspace:
         self._validate(destination)
         self._fs.move(self._adapt(source), self._adapt(destination))
 
+    def copy(self, source: str, destination: str):
+        self._validate(source)
+        self._validate(destination)
+        self._fs.copy(self._adapt(source), self._adapt(destination))
+
     def read(self, path: str) -> bytes:
         self._validate(path)
         return self._fs.read(self._adapt(path))
@@ -69,7 +74,8 @@ class Userspace:
         self._validate(path)
         self._fs.deploy_template(self._adapt(path))
 
-    def _scope(self, path: str) -> str:
+    def _scope(self, path: os.PathLike) -> str:
+        path = str(path)
         path = path[path.find('/') + 1:]
         return path[path.find('/') + 1:]
 
