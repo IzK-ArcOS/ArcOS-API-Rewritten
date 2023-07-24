@@ -8,7 +8,7 @@ from starlette.requests import Request
 
 from ._common import auth_bearer, get_path
 from .. import EndpointTags
-from ..._shared import filesystem as fs
+from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
 from ...filesystem.userspace import Userspace
 
@@ -45,19 +45,22 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
     # base_path = userspace.get_root()
 
-    _scope = lambda path, level: (path := Path(path)).relative_to(path.parents[-level])
-    _norm = lambda path: os.path.normpath(path)
+    _deep_adapt = lambda path: Path() / cfg['storage']['root'] / cfg['storage']['filesystem'] / _adapt(path)
+    _adapt = lambda path: Path(str(user.id)) / path
+    _norm = lambda path: Path(_deep_adapt(path)).resolve().relative_to(userspace._root.absolute())
+    _scope = lambda path, level: (path := _norm(path)).relative_to(path.parents[-level])
 
     return {
         'valid': True,
         'data': {
             'name': Path(path).name,
-            'scopedPath': _norm(path),
+            'scopedPath': str(_norm(path)),
             'files': [{
                 'filename': file.name,
                 'scopedPath': _scope(file, 3),
-                'size': userspace._fs.get_size(_scope(file, 2)),
-                'mime': userspace._fs.get_mime(_scope(file, 2))
+                # FIXME wtf
+                'size': userspace._fs.get_size(_adapt(_scope(_adapt(file), 4))),
+                'mime': userspace._fs.get_mime(_adapt(_scope(_adapt(file), 4)))
             } for file in files],
             'directories': [{
                 'name': Path(directory).name,
