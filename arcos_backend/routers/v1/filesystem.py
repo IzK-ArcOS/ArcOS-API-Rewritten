@@ -123,8 +123,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
     userspace = Userspace(fs, user.id)
 
     try:
-        # FIXME uhh... it doesnt work?
-        userspace.copy(target, path)
+        userspace.copy(path, target)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
