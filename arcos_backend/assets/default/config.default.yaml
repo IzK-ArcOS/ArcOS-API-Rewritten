@@ -14,5 +14,5 @@ security:
 storage:
   root: "data"
   database: "arcos.sqlite"
-  filesystem: "filesystem"
+  filesystem: null  # `null` means disabled
   template: "template"  # to disable templates set this to `null`
