@@ -16,6 +16,7 @@ class Filesystem:
         self._userspace_size = userspace_size
 
         self._root.mkdir(parents=True, exist_ok=True)
+        self._template.mkdir(parents=True, exist_ok=True)
 
     def get_userspace_size(self):
         return self._userspace_size
