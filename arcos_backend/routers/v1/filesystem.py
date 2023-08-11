@@ -166,6 +166,6 @@ def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
         'data': [{
             'scopedPath': os.path.normpath(path),
             'mime': userspace.get_mime(path),
-            'filename': path[path.rfind(os.sep) + 1:]
+            'filename': path.name
         } for path in paths]
     }

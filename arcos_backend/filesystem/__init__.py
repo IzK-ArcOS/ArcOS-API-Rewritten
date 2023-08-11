@@ -83,7 +83,7 @@ class Filesystem:
         return magic.from_file(self._root.joinpath(path), mime=True)
 
     def get_tree(self, path: PathLike | str):
-        return self._root.joinpath(path).rglob("*")
+        return list(filter(lambda path: not path.is_dir(), self._root.joinpath(path).rglob("*")))
 
     def get_stat(self, path: PathLike | str):
         return self._root.joinpath(path).stat()

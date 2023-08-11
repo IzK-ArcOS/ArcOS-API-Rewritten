@@ -72,7 +72,7 @@ class Userspace:
 
     def get_tree(self, path: PathLike | str):
         self._validate(path)
-        return [self._scope(path) for path in self._fs.get_tree(self._path_id.joinpath(path))]
+        return [self._scope(path, 4) for path in self._fs.get_tree(self._path_id.joinpath(path))]
 
     def get_stat(self, path: PathLike | str):
         self._validate(path)
