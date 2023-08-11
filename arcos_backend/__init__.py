@@ -16,6 +16,7 @@ def get_cfg():
     return cfg
 
 
+self._template.mkdir(parents=True, exist_ok=True)
 models.Base.metadata.create_all(bind=engine)
 
 
