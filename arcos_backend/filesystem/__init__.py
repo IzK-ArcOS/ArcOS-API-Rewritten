@@ -1,4 +1,3 @@
-from _ast import pattern
 from os import PathLike
 from pathlib import Path
 import shutil
