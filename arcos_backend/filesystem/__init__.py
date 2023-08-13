@@ -1,3 +1,4 @@
+from _ast import pattern
 from os import PathLike
 from pathlib import Path
 import shutil
@@ -51,7 +52,7 @@ class Filesystem:
     def remove(self, path: PathLike | str):
         path = self._root.joinpath(path)
         if path.is_dir():
-            path.rmdir()
+            shutil.rmtree(path)
         else:
             path.unlink()
 
