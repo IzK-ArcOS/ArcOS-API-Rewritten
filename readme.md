@@ -5,13 +5,20 @@
 this is the backend server which powers user and session management,
 filesystem and messaging (and prob more later) for [ArcOS' frontend](https://github.com/IzK-ArcOS/ArcOS-Frontend)
 
-## Setup
+## Getting Started
+Before you continue, make sure you install the system prerequisites:
+- Git
+- Python 3.11 or higher
 
-it is quite easy to setup the thing:
-1. clone repo: `git clone https://github.com/IzK-ArcOS/ArcOS-API-Rewritten`
-2. install requirements: `pip install -r requirements.txt`
+Once the prerequisites are met, you can execute the following commands to **clone the API**, **Install dependencies** and **run it for the first time**:
+```bash
+$ git clone https://github.com/IzK-ArcOS/ArcOS-API-Rewritten # Clone repository
+$ cd ArcOS-API-Rewritten/
+$ pip install -r requirements.txt # Satisfy dependencies
+$ python3 ./main.py # Start the API
+```
 
-(i would recommend using virtual enviroment when installing requirements)
+When running the API for the first time, a configuration file will be created called `config.yaml`, in which you can personalize your ArcAPI instance.
 
 ## Launch
 
