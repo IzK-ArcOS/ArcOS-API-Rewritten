@@ -92,4 +92,4 @@ class Filesystem:
         if self._template is None:
             return
 
-        shutil.copy(self._template, self._root.joinpath(path))
+        shutil.copytree(self._template, self._root.joinpath(path), dirs_exist_ok=True)
