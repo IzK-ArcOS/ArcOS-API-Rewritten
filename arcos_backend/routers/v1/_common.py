@@ -24,7 +24,7 @@ def auth_basic(authorization: Annotated[str, Header()]) -> tuple[str, str]:
 
     username, password = base64.b64decode(authorization[6:]).decode('utf-8').split(':')
 
-    return username, password
+    return username.strip(), password.strip()
 
 
 def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]) -> models.User:
