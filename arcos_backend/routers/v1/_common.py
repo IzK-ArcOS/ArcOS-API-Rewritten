@@ -66,7 +66,7 @@ def adapt_timestamp(timestamp: float) -> int:
 
 
 def user_identification(db: Annotated[Session, Depends(get_db)], name: str | None = None, id: int | None = None) -> models.User:
-    if not (bool(name) ^ bool(id)):
+    if not ((name is None) ^ (id is None)):
         raise HTTPException(status_code=422, detail="provide only either name or id")
 
     if name:
