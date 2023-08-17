@@ -18,7 +18,7 @@ def admin_delete(_: Annotated[None, Depends(auth_admin)], db: Annotated[Session,
     user.user_delete(db, user_db.find_user(db, name))
 
 
-@router.put('/user', summary="Changes access properties of the given user")
+@router.patch('/user', summary="Changes access properties of the given user")
 def admin_change_user(_: Annotated[None, Depends(auth_admin)], db: Annotated[Session, Depends(get_db)], edit: UserEdit, name: str):
     user = user_db.find_user(db, name)
 
