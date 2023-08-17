@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from ..._shared import configuration as cfg
 from ...davult import models
 from ...davult.database import LocalSession
-from ...davult.crud import token as token_db
+from ...davult.crud import token as token_db, user as user_db
 
 
 def get_db() -> Session:
@@ -63,3 +63,13 @@ def get_path(path: str) -> str:
 
 def adapt_timestamp(timestamp: float) -> int:
     return round(timestamp * 1000)
+
+
+def user_identification(db: Annotated[Session, Depends(get_db)], name: str | None = None, id: int | None = None) -> models.User:
+    if not (bool(name) ^ bool(id)):
+        raise HTTPException(status_code=422, detail="provide only either name or id")
+
+    if name:
+        return user_db.find_user(db, name)
+    else:
+        return user_db.get_user(db, id)
