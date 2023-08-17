@@ -12,11 +12,13 @@ class Filesystem:
 
     def __init__(self, root_path: PathLike | str, template_path: PathLike | str | None, userspace_size: int):
         self._root = Path(root_path)
-        self._template = Path(template_path)
+        self._template = template_path and Path(template_path)
         self._userspace_size = userspace_size
 
         self._root.mkdir(parents=True, exist_ok=True)
-        self._template.mkdir(parents=True, exist_ok=True)
+
+        if self._template is not None:
+            self._template.mkdir(parents=True, exist_ok=True)
 
     def get_userspace_size(self):
         return self._userspace_size

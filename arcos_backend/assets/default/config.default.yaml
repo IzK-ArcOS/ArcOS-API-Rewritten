@@ -15,4 +15,4 @@ storage:
   root: "data"
   database: "arcos.sqlite"
   filesystem: "filesystem"
-  template: "template"  # to disable templates  just delete everything in the template directory
+  template: "template"  # to disable templates set this to `null`
