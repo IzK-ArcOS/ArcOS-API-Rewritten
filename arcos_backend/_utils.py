@@ -5,7 +5,7 @@ MAX_USERNAME_LEN = 25
 
 
 def validate_username(username: str) -> bool:
-    if len(username) > MAX_USERNAME_LEN:
+    if len(username) > MAX_USERNAME_LEN or len(username) < 1:
         return False
     return True
 
