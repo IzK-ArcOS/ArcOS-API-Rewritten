@@ -36,11 +36,11 @@ def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
 
 
 @router.get('/dir/get', summary="List the directory")
-def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+def fs_dir_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
-        files, directories = userspace.listdir(path)
+        files, directories = userspace.listdir(db, path)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
 

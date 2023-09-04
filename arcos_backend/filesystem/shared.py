@@ -6,6 +6,8 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 from ..davult.crud import user as user_db
 
+SHARED_FOLDER_NAME = Path("|Shared|")
+
 
 @dataclass
 class _SharedFolder:
@@ -52,6 +54,17 @@ class _SharedFolder:
 class ShareIndex:
     _share_index_storage: Path
     users: dict[int, dict[str, _SharedFolder]]
+
+    def list_shared(self, user_id: int) -> list[int]:
+        sharing_users: list[int] = []
+
+        for sharing_user, paths in self.users.items():
+            for path, meta in paths.items():
+                if user_id in meta.full or user_id in meta.read_only:
+                    sharing_users.append(int(sharing_user))
+                    break
+
+        return sharing_users
 
     def register(self, db: Session, user_id: int, path: str, data: str):
         if user_id not in self.users:

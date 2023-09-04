@@ -5,7 +5,8 @@ import shutil
 import magic
 from sqlalchemy.orm import Session
 
-from .shared import ShareIndex
+from .shared import ShareIndex, SHARED_FOLDER_NAME
+from ..davult.crud import user as user_db
 
 
 class Filesystem:
@@ -41,19 +42,30 @@ class Filesystem:
     def mkdir(self, path: PathLike | str):
         self._root.joinpath(path).mkdir(exist_ok=True)
 
-    def listdir(self, path: PathLike | str):
+    def listdir(self, db: Session, path: PathLike | str):
         files, directories = [], []
 
         path = self._root.joinpath(path)
 
-        if (name := path.name).isdigit():
-            directories.append(self._root.joinpath(name).joinpath("|Shared|"))
+        def adapt(userspace: int | str, path: Path) -> Path:
+            nonlocal self
 
-        for child in path.iterdir():
-            if child.is_file():
-                files.append(child)
-            elif child.is_dir():
-                directories.append(child)
+            return self._root.joinpath(str(userspace)).joinpath(path)
+
+        if (name := path.name).isdigit():
+            directories.append(adapt(name, SHARED_FOLDER_NAME))
+        else:
+            users_sharing = [(user_id, user_db.get_user(db, user_id).username) for user_id in self._share_index.list_shared(int(path.parent.name))]
+
+            if path.name == SHARED_FOLDER_NAME.name:
+                for user_id, username in users_sharing:
+                    directories.append(adapt(user_id, SHARED_FOLDER_NAME.joinpath(username)))
+            else:
+                for child in path.iterdir():
+                    if child.is_file():
+                        files.append(child)
+                    elif child.is_dir():
+                        directories.append(child)
 
         return files, directories
 

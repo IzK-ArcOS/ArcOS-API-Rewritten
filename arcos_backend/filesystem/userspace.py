@@ -33,9 +33,9 @@ class Userspace:
         self._validate(path)
         self._fs.mkdir(self._path_id.joinpath(path))
 
-    def listdir(self, path: PathLike | str):
+    def listdir(self, db: Session, path: PathLike | str):
         self._validate(path)
-        files, directories = self._fs.listdir(self._path_id.joinpath(path))
+        files, directories = self._fs.listdir(db, self._path_id.joinpath(path))
 
         files = [self._scope(file) for file in files]
         directories = [self._scope(directory) for directory in directories]
