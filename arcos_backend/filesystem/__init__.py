@@ -45,6 +45,10 @@ class Filesystem:
         files, directories = [], []
 
         path = self._root.joinpath(path)
+
+        if (name := path.name).isdigit():
+            directories.append(self._root.joinpath(name).joinpath("|Shared|"))
+
         for child in path.iterdir():
             if child.is_file():
                 files.append(child)
