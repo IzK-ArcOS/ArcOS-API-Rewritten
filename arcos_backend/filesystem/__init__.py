@@ -3,10 +3,14 @@ from pathlib import Path
 import shutil
 
 import magic
+from sqlalchemy.orm import Session
+
+from .shared import ShareIndex
 
 
 class Filesystem:
     _root: Path
+    _share_index: ShareIndex
     _template: Path | None
     _userspace_size: int
 
@@ -19,6 +23,11 @@ class Filesystem:
 
         if self._template is not None:
             self._template.mkdir(parents=True, exist_ok=True)
+
+        if not (share_index_path := self._root.joinpath("share_index.json")).exists():
+            share_index_path.write_text("{}")
+
+        self._share_index = ShareIndex.from_json(share_index_path, share_index_path.read_text())
 
     def get_userspace_size(self):
         return self._userspace_size
@@ -44,11 +53,14 @@ class Filesystem:
 
         return files, directories
 
-    def write(self, path: PathLike | str, data: bytes):
+    def write(self, db: Session, path: PathLike | str, data: bytes):
         if self.get_size('.') + len(data) > self._userspace_size:
             raise RuntimeError("data is too large (not enough space)")
 
-        self._root.joinpath(path).write_bytes(data)
+        if (path := self._root.joinpath(path)).name == ".shared":
+            self._share_index.register(db, int(path.parents[-4].name), str(self._truncate(path.parent, 3)), data.decode('utf-8'))
+
+        path.write_bytes(data)
 
     def remove(self, path: PathLike | str):
         path = self._root.joinpath(path)
@@ -95,3 +107,7 @@ class Filesystem:
             return
 
         shutil.copytree(self._template, self._root.joinpath(path), dirs_exist_ok=True)
+
+    @staticmethod
+    def _truncate(path: PathLike | str, depth: int = 1) -> Path:
+        return (path := Path(path)).relative_to(path.parents[-1 - depth])

@@ -1,6 +1,8 @@
 from os import PathLike
 from pathlib import Path
 
+from sqlalchemy.orm import Session
+
 from arcos_backend import Filesystem
 
 
@@ -40,9 +42,9 @@ class Userspace:
 
         return files, directories
 
-    def write(self, path: PathLike | str, data: bytes):
+    def write(self, db: Session, path: PathLike | str, data: bytes):
         self._validate(path)
-        self._fs.write(self._path_id.joinpath(path), data)
+        self._fs.write(db, self._path_id.joinpath(path), data)
 
     def remove(self, path: PathLike | str):
         self._validate(path)

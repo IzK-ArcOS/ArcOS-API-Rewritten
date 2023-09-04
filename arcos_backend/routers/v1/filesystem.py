@@ -4,9 +4,10 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Response, Depends
+from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from ._common import auth_bearer, get_path, adapt_timestamp
+from ._common import auth_bearer, get_path, adapt_timestamp, get_db
 from .. import EndpointTags
 from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
@@ -103,13 +104,13 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 
 
 @router.post('/file/write', summary="Write to the file")
-async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+async def fs_file_write(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     file_data = await request.body()
 
     userspace = Userspace(fs, user.id)
 
     try:
-        userspace.write(path, file_data)
+        userspace.write(db, path, file_data)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
