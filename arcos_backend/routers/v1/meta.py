@@ -14,5 +14,6 @@ def connect():
         'port': cfg['info']['port'],
         'referrer': '/connect',
         'valid': True,
-        'revision': API_REVISION
+        'revision': API_REVISION,
+        'protected': bool(cfg['security']['auth_code'])
     }
