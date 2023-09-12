@@ -4,7 +4,7 @@ from .. import EndpointTags
 from ..._shared import configuration as cfg, API_REVISION
 
 
-router = APIRouter(tags=[EndpointTags.server])
+router = APIRouter(tags=[EndpointTags.meta])
 
 
 @router.get('/connect', summary="Get ArcAPI instance information")
