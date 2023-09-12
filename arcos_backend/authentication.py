@@ -18,10 +18,7 @@ class AuthCodeMiddleware(BaseHTTPMiddleware):
         ):
             params = request.query_params
 
-            if 'ac' not in params:
+            if 'ac' not in params or params['ac'] != self._authcode:
                 return Response(status_code=401)
-
-            if params['ac'] != self._authcode:
-                return Response(status_code=403)
 
         return await call_next(request)
