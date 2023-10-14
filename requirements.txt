@@ -3,4 +3,4 @@ pyyaml
 python-magic
 sqlalchemy
 uvicorn
-libmagic
+python-magic-bin
