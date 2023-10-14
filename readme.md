@@ -7,8 +7,9 @@ filesystem and messaging (and prob more later) for [ArcOS' frontend](https://git
 
 ## Getting Started
 Before you continue, make sure you install the system prerequisites:
-- Git
-- Python 3.11 or higher
+- [Git](https://git-scm.com/)
+- [Python](https://www.python.org/) 3.11 or higher
+- [Rust](https://rust-lang.org/) Toolchain (can be installed via [`rustup`](https://rustup.sh/)
 
 Once the prerequisites are met, you can execute the following commands to **clone the API**, **Install dependencies** and **run it for the first time**:
 ```bash
