@@ -26,7 +26,8 @@ $ venv/Scripts/activate.bat
 
 $ pip install -r requirements.txt  # Satisfy dependencies
 
-$ python ./main.py # Start the API
+$ python3 ./main.py # Start the API
+$ python ./main.py # Start the API (Windows Only)
 
 $ deactivate  # Deactivate virtual enviroment
 ```
