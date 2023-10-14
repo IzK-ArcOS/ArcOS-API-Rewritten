@@ -16,7 +16,8 @@ Once the prerequisites are met, you can execute the following commands to **clon
 $ git clone https://github.com/IzK-ArcOS/ArcOS-API-Rewritten  # Clone repository
 $ cd ArcOS-API-Rewritten/
 
-$ python -m venv venv  # Create virtual enviroment for ArcAPI
+$ python -m venv venv # Create virtual enviorment for ArcAPI
+$ py -m venv venv  # Create virtual enviroment for ArcAPI (Windows only)
 
 # Activate virtual enviroment (you will need to do this each time when launching ArcAPI)
 # If on *nix:
