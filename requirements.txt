@@ -3,4 +3,4 @@ pyyaml
 python-magic
 sqlalchemy
 uvicorn
-python-magic-bin; sys.platform == 'win32'
+python-magic-bin
