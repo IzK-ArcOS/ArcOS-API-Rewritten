@@ -1,8 +1,11 @@
+import mimetypes
 from os import PathLike
 from pathlib import Path
 import shutil
 
-import magic
+from . import mime
+
+DEFAULT_MIMETYPE = 'text/plain'  # maybe should be application/octet-stream?
 
 
 class Filesystem:
@@ -86,7 +89,7 @@ class Filesystem:
         return directory_size
 
     def get_mime(self, path: PathLike | str) -> str:
-        return magic.from_file(self._root.joinpath(path), mime=True)
+        return mimetypes.guess_type(self._root.joinpath(path))[0] or DEFAULT_MIMETYPE
 
     def get_tree(self, path: PathLike | str):
         return list(filter(lambda path: not path.is_dir(), self._root.joinpath(path).rglob("*")))
