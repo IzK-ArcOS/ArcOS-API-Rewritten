@@ -64,7 +64,7 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
                 # on linux file creation timestamp is a bit broky, more precisely it shows last metadata modification
                 'dateCreated': adapt_timestamp((stat := userspace.get_stat(_scope(_adapt(file), 4))).st_ctime),
                 'dateModified': adapt_timestamp(stat.st_mtime)
-            } for file in files if file.exists()],
+            } for file in files],
             'directories': [{
                 'name': Path(directory).name,
                 'scopedPath': _scope(directory, 3)
