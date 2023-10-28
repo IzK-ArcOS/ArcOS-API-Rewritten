@@ -18,9 +18,9 @@ def users_get(db: Annotated[Session, Depends(get_db)]):
     users = user_db.get_users(db)
 
     return {
-        'data': [{
+        'data': sorted([{
             'username': user.username,
             'acc': json.loads(user.properties)['acc']
-        } for user in users if not user.is_deleted and is_enabled(user)],
+        } for user in users if not user.is_deleted and is_enabled(user)], key=lambda item: item['username']),
         'valid': True
     }
