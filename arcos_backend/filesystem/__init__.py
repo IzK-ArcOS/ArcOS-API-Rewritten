@@ -1,12 +1,15 @@
+import mimetypes
 from os import PathLike
 from pathlib import Path
 import shutil
 
-import magic
 from sqlalchemy.orm import Session
 
+from . import mime
 from .shared import ShareIndex, SHARED_FOLDER_NAME
 from ..davult.crud import user as user_db
+
+DEFAULT_MIMETYPE = 'text/plain'  # maybe should be application/octet-stream?
 
 
 class Filesystem:
@@ -90,8 +93,12 @@ class Filesystem:
                     self._root.joinpath(destination))
 
     def copy(self, source: PathLike | str, destination: PathLike | str):
-        shutil.copy(self._root.joinpath(source),
-                    self._root.joinpath(destination))
+        if Path(source).is_file():
+            shutil.copy(self._root.joinpath(source),
+                        self._root.joinpath(destination))
+        else:
+            shutil.copytree(self._root.joinpath(source),
+                            self._root.joinpath(destination))
 
     def read(self, path: PathLike | str) -> bytes:
         return self._root.joinpath(path).read_bytes()
@@ -110,7 +117,7 @@ class Filesystem:
         return directory_size
 
     def get_mime(self, path: PathLike | str) -> str:
-        return magic.from_file(self._root.joinpath(path), mime=True)
+        return mimetypes.guess_type(self._root.joinpath(path))[0] or DEFAULT_MIMETYPE
 
     def get_tree(self, path: PathLike | str):
         return list(filter(lambda path: not path.is_dir(), self._root.joinpath(path).rglob("*")))

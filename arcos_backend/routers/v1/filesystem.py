@@ -114,7 +114,7 @@ async def fs_file_write(request: Request, db: Annotated[Session, Depends(get_db)
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(status_code=413, detail="data is too large (not enough space)")
 
 
 @router.get('/cp', summary="Copy the file or the directory")
@@ -128,7 +128,7 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
     except (FileNotFoundError, ValueError):
         raise HTTPException(status_code=404, detail="path not found")
     except RuntimeError:
-        raise HTTPException(status_code=409, detail="data is too large (not enough space)")
+        raise HTTPException(status_code=413, detail="data is too large (not enough space)")
 
 
 @router.get('/rm', summary="Delete the file or the directory")

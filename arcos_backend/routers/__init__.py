@@ -6,7 +6,7 @@ class EndpointTags(StrEnum):
     messages = "messages"
     users = "users"
     sessions = "sessions"
-    server = "server"
+    meta = "meta"
     admin = "admin"
 
 
@@ -28,7 +28,7 @@ TAGS_DOCS = [
         'description': "Session (token) management"
     },
     {
-        'name': EndpointTags.server,
+        'name': EndpointTags.meta,
         'description': "ArcAPI instance information"
     },
     {

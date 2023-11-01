@@ -4,7 +4,7 @@ from .. import EndpointTags
 from ..._shared import configuration as cfg, API_REVISION
 
 
-router = APIRouter(tags=[EndpointTags.server])
+router = APIRouter(tags=[EndpointTags.meta])
 
 
 @router.get('/connect', summary="Get ArcAPI instance information")
@@ -14,5 +14,6 @@ def connect():
         'port': cfg['info']['port'],
         'referrer': '/connect',
         'valid': True,
-        'revision': API_REVISION
+        'revision': API_REVISION,
+        'protected': bool(cfg['security']['auth_code'])
     }

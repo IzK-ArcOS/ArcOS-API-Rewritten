@@ -1,5 +1,4 @@
 fastapi
 pyyaml
-python-magic
 sqlalchemy
 uvicorn

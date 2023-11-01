@@ -8,7 +8,7 @@ from .davult.database import engine
 
 from .filesystem import Filesystem
 from .routers import TAGS_DOCS
-from .routers.v1 import server, token, user, users, filesystem, messages, admin
+from .routers.v1 import meta, token, user, users, filesystem, messages, admin
 from .authentication import AuthCodeMiddleware
 
 
@@ -39,7 +39,7 @@ app.add_middleware(
     authcode=cfg['security']['auth_code']
 )
 
-app.include_router(server.router)
+app.include_router(meta.router)
 app.include_router(token.router)
 app.include_router(user.router, prefix='/user')
 app.include_router(users.router, prefix='/users')

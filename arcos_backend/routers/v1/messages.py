@@ -18,7 +18,10 @@ router = APIRouter(tags=[EndpointTags.messages])
 
 
 def get_id(id: str) -> int:
-    return int(base64.b64decode(id).decode('utf-8'))
+    try:
+        return int(base64.b64decode(id).decode('utf-8'))
+    except ValueError:
+        raise HTTPException(status_code=422, detail="your id is invalid")
 
 
 def get_target(db: Annotated[Session, Depends(get_db)], target: str) -> models.User:
