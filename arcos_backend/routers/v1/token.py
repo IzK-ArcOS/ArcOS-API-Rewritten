@@ -2,9 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 
 
 from ._common import auth_basic, get_db
