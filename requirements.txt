@@ -1,4 +1,5 @@
 fastapi
+slowapi
 pyyaml
 sqlalchemy
 uvicorn

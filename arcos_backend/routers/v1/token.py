@@ -1,7 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException, Depends
+from fastapi import APIRouter, Header, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 
 from ._common import auth_basic, get_db
 from .. import EndpointTags
@@ -10,12 +14,13 @@ from ...davult import schemas
 from ...davult.models import is_enabled
 from ...davult.crud import token as token_db, user as user_db
 
-
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.sessions])
 
 
 @router.get('/auth', summary="Create session")
-def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
+@limiter.limit("15/minute")
+def auth(request: Request, db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
     try:
@@ -39,7 +44,8 @@ def auth(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[s
 
 
 @router.get('/logoff', summary="Expire session")
-def logoff(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]):
+@limiter.limit("15/minute")
+def logoff(request: Request, db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]):
     if not authorization.startswith('Bearer '):
         raise HTTPException(status_code=422, detail="invalid authorization method")
 

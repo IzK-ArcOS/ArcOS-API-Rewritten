@@ -5,6 +5,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Response, Depends
 from starlette.requests import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from ._common import auth_bearer, get_path, adapt_timestamp
 from .. import EndpointTags
@@ -12,12 +15,13 @@ from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
 from ...filesystem.userspace import Userspace
 
-
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.filesystem])
 
 
 @router.get('/quota', summary="Get available space in user storage")
-def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
+@limiter.limit("3/second")
+def fs_quota(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
 
     size = fs.get_userspace_size()
@@ -35,7 +39,8 @@ def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
 
 
 @router.get('/dir/get', summary="List the directory")
-def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+@limiter.limit("1/second")
+def fs_dir_get(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -74,7 +79,8 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
 
 @router.get('/dir/create', summary="Create the directory")
-def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+@limiter.limit("3/second")
+def fs_dir_create(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -88,7 +94,8 @@ def fs_dir_create(user: Annotated[models.User, Depends(auth_bearer)], path: Anno
 
 
 @router.get('/file/get', summary="Read the file")
-def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+@limiter.limit("3/second")
+def fs_file_get(request: Request, response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -103,6 +110,7 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 
 
 @router.post('/file/write', summary="Write to the file")
+@limiter.limit("3/second")
 async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     file_data = await request.body()
 
@@ -117,7 +125,8 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
 
 
 @router.get('/cp', summary="Copy the file or the directory")
-def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)], target: str):
+@limiter.limit("3/second")
+def fs_time_copy(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)], target: str):
     target = base64.b64decode(target).decode('utf-8')
 
     userspace = Userspace(fs, user.id)
@@ -131,7 +140,8 @@ def fs_time_copy(user: Annotated[models.User, Depends(auth_bearer)], path: Annot
 
 
 @router.get('/rm', summary="Delete the file or the directory")
-def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+@limiter.limit("3/second")
+def fs_rm(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -141,7 +151,8 @@ def fs_rm(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[st
 
 
 @router.get('/rename', summary="Rename (move) the file or the directory")
-def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
+@limiter.limit("3/second")
+def fs_item_rename(request: Request, user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
     _b64 = lambda s: base64.b64decode(s).decode('utf-8')  # NOQA E731
 
     userspace = Userspace(fs, user.id)
@@ -153,7 +164,8 @@ def fs_item_rename(user: Annotated[models.User, Depends(auth_bearer)], oldpath: 
 
 
 @router.get('/tree', summary="Get the tree of the userspace")
-def fs_tree(user: Annotated[models.User, Depends(auth_bearer)]):
+@limiter.limit("1/second")
+def fs_tree(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
 
     try:
