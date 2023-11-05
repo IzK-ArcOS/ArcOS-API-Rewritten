@@ -3,3 +3,4 @@ __pycache__/
 venv/
 data/
 config.yaml
+/stuff.log

@@ -12,6 +12,7 @@ from .filesystem import Filesystem
 from .routers import TAGS_DOCS
 from .routers.v1 import meta, token, user, users, filesystem, messages, admin
 from .authentication import AuthCodeMiddleware
+from ._logging import LoggingMiddleware
 
 
 def get_cfg():
@@ -42,6 +43,11 @@ app.add_middleware(
     AuthCodeMiddleware,
     authcode=cfg['security']['auth_code']
 )
+
+app.add_middleware(
+    LoggingMiddleware
+)
+
 
 app.include_router(meta.router)
 app.include_router(token.router)
