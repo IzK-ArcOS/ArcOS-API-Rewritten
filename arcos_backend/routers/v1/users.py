@@ -17,7 +17,6 @@ router = APIRouter(tags=[EndpointTags.users])
 
 
 @router.get('/get', summary="Get the list of users")
-@limiter.limit("1/second")
 def users_get(request: Request, db: Annotated[Session, Depends(get_db)]):
     users = user_db.get_users(db)
 
