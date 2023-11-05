@@ -5,6 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette.requests import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from ._common import auth_basic, auth_bearer, get_db
 from .. import EndpointTags
@@ -14,12 +17,13 @@ from ...davult import schemas, models
 from ...davult.crud import user as user_db
 from ...filesystem.userspace import Userspace
 
-
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.users])
 
 
 @router.get('/create', summary="Create new user")
-def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
+@limiter.limit("7/hour")
+def user_create(request: Request, db: Annotated[Session, Depends(get_db)], credentials: Annotated[tuple[str, str], Depends(auth_basic)]):
     username, password = credentials
 
     try:
@@ -35,7 +39,7 @@ def user_create(db: Annotated[Session, Depends(get_db)], credentials: Annotated[
 
 
 @router.get('/properties', summary="Get user properties")
-def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
+def user_properties(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
     return {**json.loads(user.properties), 'valid': True, 'statusCode': 200}
 
 
@@ -50,7 +54,8 @@ async def user_properties_update(request: Request, db: Annotated[Session, Depend
 
 
 @router.get('/delete', summary="Delete the user")
-def user_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
+@limiter.limit("17/hour")
+def user_delete(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
     user_db.delete_user(db, user)
     userspace.delete()
