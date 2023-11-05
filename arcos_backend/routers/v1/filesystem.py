@@ -39,7 +39,6 @@ def fs_quota(request: Request, user: Annotated[models.User, Depends(auth_bearer)
 
 
 @router.get('/dir/get', summary="List the directory")
-@limiter.limit("1/second")
 def fs_dir_get(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
@@ -94,7 +93,6 @@ def fs_dir_create(request: Request, user: Annotated[models.User, Depends(auth_be
 
 
 @router.get('/file/get', summary="Read the file")
-@limiter.limit("3/second")
 def fs_file_get(request: Request, response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
