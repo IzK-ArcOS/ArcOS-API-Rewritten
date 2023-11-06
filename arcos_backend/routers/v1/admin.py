@@ -3,7 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from starlette.requests import Request
 
+from . import user as user_api
 from ._common import get_db, auth_admin, user_identification
 from ._schemas import UserEdit, UserData
 from .. import EndpointTags
@@ -15,8 +17,8 @@ router = APIRouter(tags=[EndpointTags.admin])
 
 
 @router.delete('/user', summary="Deletes given user")
-def admin_delete(_: Annotated[None, Depends(auth_admin)], db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(user_identification)]):
-    user_db.delete_user(db, user)
+def admin_delete(request: Request, _: Annotated[None, Depends(auth_admin)], db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(user_identification)]):
+    user_api.user_delete(request, db, user)
 
 
 @router.patch('/user', summary="Changes access properties of the given user")
