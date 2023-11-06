@@ -16,7 +16,7 @@ router = APIRouter(tags=[EndpointTags.admin])
 
 @router.delete('/user', summary="Deletes given user")
 def admin_delete(_: Annotated[None, Depends(auth_admin)], db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(user_identification)]):
-    user.user_delete(db, user)
+    user_db.delete_user(db, user)
 
 
 @router.patch('/user', summary="Changes access properties of the given user")
