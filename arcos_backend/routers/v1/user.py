@@ -53,7 +53,7 @@ async def user_properties_update(request: Request, db: Annotated[Session, Depend
 
 
 @router.get('/delete', summary="Delete the user")
-@limiter.limit("17/hour")
+# @limiter.limit("17/hour")   # XXX rate limiting disabled due to admin endpoint relying on this, and we dont want to rate limit admin endpoint
 def user_delete(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
     user_db.delete_user(db, user)
