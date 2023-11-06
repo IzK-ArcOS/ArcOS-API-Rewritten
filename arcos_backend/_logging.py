@@ -52,7 +52,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except HTTPException as http_exc:
             callback_time_end = time.perf_counter()
 
-            self._logger.warning(base_msg + f"{(code := http_exc.status_code)} {http.HTTPStatus(code).name}{f' ({http_exc.detail})' if http_exc.detail is not None else ''}" + time_taken())
+            self._logger.warning(base_msg + f"{(code := http_exc.status_code)} {http.HTTPStatus(code).phrase}{f' ({http_exc.detail})' if http_exc.detail is not None else ''}" + time_taken())
 
             raise http_exc from http_exc.__context__
         except Exception as exc:
@@ -64,6 +64,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         else:
             callback_time_end = time.perf_counter()
 
-            self._logger.info(base_msg + f"{(code := response.status_code)} {http.HTTPStatus(code).name}" + time_taken())
+            self._logger.info(base_msg + f"{(code := response.status_code)} {http.HTTPStatus(code).phrase}" + time_taken())
 
             return response
