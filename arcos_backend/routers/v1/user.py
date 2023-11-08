@@ -16,6 +16,7 @@ from ...davult import schemas, models
 from ...davult.crud import user as user_db
 from ...filesystem.userspace import Userspace
 
+
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.users])
 
@@ -38,10 +39,11 @@ def user_create(request: Request, db: Annotated[Session, Depends(get_db)], crede
 
 
 @router.get('/properties', summary="Get user properties")
-def user_properties(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
+def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
     return {**json.loads(user.properties), 'valid': True, 'statusCode': 200}
 
 
+# not rate limited because frontend spams this endpoint as hell
 @router.post('/properties/update', summary="Update user properties")
 async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     try:

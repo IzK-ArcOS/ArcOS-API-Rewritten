@@ -9,6 +9,7 @@ from .. import EndpointTags
 from ...davult.models import is_enabled
 from ...davult.crud import user as user_db
 
+
 router = APIRouter(tags=[EndpointTags.users])
 
 

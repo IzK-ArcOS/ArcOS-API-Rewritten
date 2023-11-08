@@ -2,6 +2,8 @@ import base64
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
@@ -10,10 +12,10 @@ from .. import EndpointTags
 from ...davult import models, schemas
 from ...davult.crud import message as msg_db, user as user_db
 
-
 MESSAGE_PREVIEW_BODY_LEN = 30
 
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.messages])
 
 
@@ -29,6 +31,7 @@ def get_target(db: Annotated[Session, Depends(get_db)], target: str) -> models.U
 
 
 @router.post('/send', summary="Send the message")
+@limiter.limit("1/second")
 async def messages_send(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], target: Annotated[models.User, Depends(get_target)]):
     try:
         message = msg_db.send_message(db, schemas.MessageCreate(
@@ -50,6 +53,7 @@ async def messages_send(request: Request, db: Annotated[Session, Depends(get_db)
 
 
 @router.post('/reply', summary="Reply to the message")
+@limiter.limit("1/second")
 async def messages_reply(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: int, target: Annotated[models.User, Depends(get_target)]):
     try:
         message = msg_db.send_message(db, schemas.MessageCreate(
@@ -100,7 +104,8 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
 
 
 @router.get('/delete', summary="Delete the message")
-def messages_delete(db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: Annotated[int, Depends(get_id)]):
+@limiter.limit("1/second")
+def messages_delete(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)], id: Annotated[int, Depends(get_id)]):
     try:
         message = msg_db.get_message(db, id)
     except LookupError:

@@ -13,6 +13,7 @@ from ...davult import schemas
 from ...davult.models import is_enabled
 from ...davult.crud import token as token_db, user as user_db
 
+
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.sessions])
 

@@ -14,13 +14,13 @@ from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
 from ...filesystem.userspace import Userspace
 
+
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=[EndpointTags.filesystem])
 
 
 @router.get('/quota', summary="Get available space in user storage")
-@limiter.limit("3/second")
-def fs_quota(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
+def fs_quota(user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
 
     size = fs.get_userspace_size()
@@ -38,7 +38,7 @@ def fs_quota(request: Request, user: Annotated[models.User, Depends(auth_bearer)
 
 
 @router.get('/dir/get', summary="List the directory")
-def fs_dir_get(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -92,7 +92,7 @@ def fs_dir_create(request: Request, user: Annotated[models.User, Depends(auth_be
 
 
 @router.get('/file/get', summary="Read the file")
-def fs_file_get(request: Request, response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
+def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
     try:
@@ -161,7 +161,7 @@ def fs_item_rename(request: Request, user: Annotated[models.User, Depends(auth_b
 
 
 @router.get('/tree', summary="Get the tree of the userspace")
-@limiter.limit("1/second")
+@limiter.limit("5/second")
 def fs_tree(request: Request, user: Annotated[models.User, Depends(auth_bearer)]):
     userspace = Userspace(fs, user.id)
 
