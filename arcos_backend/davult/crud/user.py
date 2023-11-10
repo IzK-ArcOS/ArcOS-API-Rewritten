@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from . import message as msg_db, token as token_db
 from .. import models, schemas
-from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN
+from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN, merge
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
@@ -95,9 +95,14 @@ def set_user_state(db: Session, user: models.User, state: bool):
             token_db.expire_token(db, token)
 
 
-def update_user_properties(db: Session, user: models.User, properties: dict):
-    updated_properties = json.loads(user.properties)
-    updated_properties.update(properties)
+def update_user_properties(db: Session, user: models.User, properties: dict, /, replace: bool = True):
+    updated_properties: dict = json.loads(user.properties)
+
+    if not replace:
+        updated_properties = merge(updated_properties, properties, merge_lists=False)
+    else:
+        updated_properties.update(properties)
+
     user.properties = json.dumps(updated_properties)
     db.commit()
 

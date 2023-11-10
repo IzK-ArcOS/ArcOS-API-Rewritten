@@ -4,18 +4,10 @@ from typing import Annotated
 from fastapi import HTTPException, Header, Depends
 from sqlalchemy.orm import Session
 
+from .._common import get_db
 from ..._shared import configuration as cfg
 from ...davult import models
-from ...davult.database import LocalSession
 from ...davult.crud import token as token_db, user as user_db
-
-
-def get_db() -> Session:
-    db = LocalSession()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def auth_basic(authorization: Annotated[str, Header()]) -> tuple[str, str]:

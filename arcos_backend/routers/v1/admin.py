@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from . import user as user_api
-from ._common import get_db, auth_admin, user_identification
+from ._common import auth_admin, user_identification
+from .._common import get_db
 from ._schemas import UserEdit, UserData
 from .. import EndpointTags
 from ...davult import models

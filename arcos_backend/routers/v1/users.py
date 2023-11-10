@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from ._common import get_db
+from .._common import get_db
 from .. import EndpointTags
 from ...davult.models import is_enabled
 from ...davult.crud import user as user_db

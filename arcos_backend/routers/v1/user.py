@@ -8,7 +8,8 @@ from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from ._common import auth_basic, auth_bearer, get_db
+from ._common import auth_basic, auth_bearer
+from .._common import get_db
 from .. import EndpointTags
 from ..._shared import filesystem as fs
 from ..._utils import MAX_USERNAME_LEN

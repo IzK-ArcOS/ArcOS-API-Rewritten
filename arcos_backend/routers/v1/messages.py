@@ -7,7 +7,8 @@ from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from ._common import get_db, auth_bearer, adapt_timestamp
+from ._common import auth_bearer, adapt_timestamp
+from .._common import get_db
 from .. import EndpointTags
 from ...davult import models, schemas
 from ...davult.crud import message as msg_db, user as user_db

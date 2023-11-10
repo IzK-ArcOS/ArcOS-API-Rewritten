@@ -6,7 +6,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 
-from ._common import auth_basic, get_db
+from ._common import auth_basic
+from .._common import get_db
 from .. import EndpointTags
 from ..._shared import configuration as cfg
 from ...davult import schemas

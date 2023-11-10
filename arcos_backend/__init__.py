@@ -11,6 +11,7 @@ from .davult.database import engine
 from .filesystem import Filesystem
 from .routers import TAGS_DOCS
 from .routers.v1 import meta, token, user, users, filesystem, messages, admin
+from .routers.v2 import router as api_v2
 from ._authentication import AuthCodeMiddleware
 from ._logging import LoggingMiddleware
 
@@ -56,3 +57,4 @@ app.include_router(users.router, prefix='/users')
 app.include_router(filesystem.router, prefix='/fs')
 app.include_router(messages.router, prefix='/messages')
 app.include_router(admin.router, prefix='/admin')
+app.include_router(api_v2, prefix='/v2')

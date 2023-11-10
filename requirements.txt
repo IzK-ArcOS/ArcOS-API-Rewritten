@@ -3,3 +3,4 @@ slowapi
 pyyaml
 sqlalchemy
 uvicorn
+python-multipart
