@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from arcos_backend.davult.database import LocalSession
+from ..davult.database import LocalSession
 
 
 # TODO move into davult

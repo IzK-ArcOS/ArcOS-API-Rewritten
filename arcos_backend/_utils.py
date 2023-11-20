@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import hashlib
 
 
@@ -15,17 +16,23 @@ def hash_salty(password: str) -> str:
     return hashlib.sha512((salt + password).encode('utf-8'), usedforsecurity=True).hexdigest()
 
 
-# thanks to lakmatiol (207089259730042881), in pydis
-def merge(a: dict, b: dict, /, merge_lists: bool = True) -> dict:
-    match (a, b):
-        case (dict(x), dict(y)):
-            x = x.copy()
+def is_in(obj: object, it: Iterable[object]) -> bool:
+    return any(obj is item for item in it)
 
-            for k in y:
-                x[k] = merge(x[k], y[k], merge_lists=merge_lists) if k in x else y[k]
 
-            return x
-        case (list(x), list(y)):
-            return (x + y) if merge_lists else y
-        case (_, y):
-            return y
+def merge_into(target: dict, patch: dict, /, merge_lists: bool = True) -> None:
+    for key, patch_v in [(p_k, p_v) for p_k, p_v in patch.items()]:
+        if key in target and type(target[key]) is (patch_vt := type(patch_v)):
+            if isinstance(patch_v, dict):
+                merge_into(target[key], patch_v)
+            elif merge_lists and is_in(patch_vt, (list, tuple)):
+                target[key] += patch_v
+            else:
+                target[key] = patch_v
+        elif patch_vt is dict:
+            merge_into(target.setdefault(key, {}), patch_v)
+        elif patch_v is None:
+            if key in target:
+                del target[key]
+        else:
+            target[key] = patch_v

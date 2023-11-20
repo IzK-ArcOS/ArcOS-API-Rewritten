@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from . import message as msg_db, token as token_db
 from .. import models, schemas
-from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN, merge
+from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN, merge_into
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
@@ -99,7 +99,7 @@ def update_user_properties(db: Session, user: models.User, properties: dict, /, 
     updated_properties: dict = json.loads(user.properties)
 
     if not replace:
-        updated_properties = merge(updated_properties, properties, merge_lists=False)
+        updated_properties = merge_into(updated_properties, properties, merge_lists=False)
     else:
         updated_properties.update(properties)
 

@@ -6,7 +6,8 @@ from pydantic.dataclasses import dataclass
 from .models import USER_DEFAULT_PROPERTIES
 
 
-MODEL_CONFIG = ConfigDict(from_attributes=True)
+# TODO make it default
+# MODEL_CONFIG = ConfigDict(from_attributes=True)
 
 
 # TODO remake without usage of inheritance
@@ -54,3 +55,4 @@ class Message(MessageBase):
     id: int
     sent_time: datetime
     is_read: bool
+    replier_ids: list[int]
