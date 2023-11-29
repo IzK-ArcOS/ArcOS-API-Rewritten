@@ -8,7 +8,7 @@ from ...davult.models import Token
 from ...davult.schemas import TokenCreate
 from ._auth import OAuth2LoginInfo, get_token
 
-token_api = APIRouter()
+router = APIRouter()
 
 
 # TODO move it into
