@@ -3,3 +3,5 @@ slowapi
 pyyaml
 sqlalchemy
 uvicorn
+profanity
+better-profanity

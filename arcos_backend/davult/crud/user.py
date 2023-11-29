@@ -7,12 +7,15 @@ from sqlalchemy.orm import Session
 
 from . import message as msg_db, token as token_db
 from .. import models, schemas
-from ..._utils import hash_salty, validate_username, MAX_USERNAME_LEN
+from ..._utils import hash_salty, validate_username, check_profanity, MAX_USERNAME_LEN
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     if not validate_username(user.username):
         raise ValueError(f"username is too long (>{MAX_USERNAME_LEN})")
+
+    if check_profanity(user.username):
+        raise ValueError(f"username contains offensive strings")
 
     hashed_password = hash_salty(user.password)
 
@@ -62,7 +65,8 @@ def get_user(db: Session, user_id: int) -> models.User:
 
 
 def find_user(db: Session, username: str) -> models.User:
-    db_user = db.query(models.User).filter(models.User.username == username).first()
+    db_user = db.query(models.User).filter(
+        models.User.username == username).first()
 
     if db_user is None:
         raise LookupError(f"unknown user (username: {username})")

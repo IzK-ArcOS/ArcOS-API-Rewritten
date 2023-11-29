@@ -27,9 +27,10 @@ def user_create(request: Request, db: Annotated[Session, Depends(get_db)], crede
     username, password = credentials
 
     try:
-        user = user_db.create_user(db, schemas.UserCreate(username=username, password=password))
-    except ValueError:
-        raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
+        user = user_db.create_user(db, schemas.UserCreate(
+            username=username, password=password))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=409, detail="username already exists")
 
@@ -68,7 +69,8 @@ def user_rename(db: Annotated[Session, Depends(get_db)], user: Annotated[models.
     try:
         user_db.rename_user(db, user, newname)
     except ValueError:
-        raise HTTPException(status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
+        raise HTTPException(
+            status_code=413, detail=f"username is too long (>{MAX_USERNAME_LEN})")
 
 
 @router.get('/changepswd', summary="Change user's password")
