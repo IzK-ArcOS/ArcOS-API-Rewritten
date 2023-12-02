@@ -6,7 +6,7 @@ from ._schemas import MetaInfo
 router = APIRouter()
 
 
-@router.get('/')
+@router.get("/")
 async def meta_info() -> MetaInfo:
     return MetaInfo(
         name=cfg['info']['name'],
