@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 import hashlib
-
+from profanity import profanity
 
 MAX_USERNAME_LEN = 25
 
 
 def validate_username(username: str) -> bool:
-    if len(username) > MAX_USERNAME_LEN or len(username) < 1:
+    if len(username) > MAX_USERNAME_LEN or len(username) < 1 or profanity.contains_profanity(username):
         return False
     return True
 
