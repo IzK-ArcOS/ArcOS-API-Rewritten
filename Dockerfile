@@ -1,8 +1,5 @@
-# start with ubuntu
-FROM python:3.11.7
-
-# install python3 and pip3
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+# start with a base image
+FROM python:3.11.7-alpine
 
 # copy ./orig into the container
 COPY ./ /ArcOS
