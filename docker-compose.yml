@@ -1,8 +1,0 @@
-version: '3.7'
-services:
-  arc:
-    image: arc:latest
-    ports:
-      - 3333:3333
-    environment:
-      - ARCOS_LISTEN_CONFIG_OVERRIDE=true
