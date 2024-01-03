@@ -5,10 +5,10 @@ FROM python:3.11.7
 RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
 
 # copy ./orig into the container
-COPY ./orig /
+COPY ./ /ArcOS
 
 # switch to the cloned directory
-WORKDIR /ArcOS-API-Rewritten
+WORKDIR /ArcOS
 
 # list version
 RUN python3 --version
