@@ -4,3 +4,4 @@ venv/
 data/
 config.yaml
 /stuff.log
+docker-compose.yml
