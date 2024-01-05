@@ -23,4 +23,4 @@ services:
       - ./data:/ArcOS/data
 ```
 
-Then run `docker-compose up` to start the container.
+Then run `docker compose up -d` to start the container.

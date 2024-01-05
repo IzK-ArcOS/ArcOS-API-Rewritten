@@ -19,5 +19,5 @@ RUN pip3 install -r requirements.txt
 # expose port 3333
 EXPOSE 3333
 
-# launch the backend
+# Launch ArcOS API
 CMD ["python3", "./main.py"]
