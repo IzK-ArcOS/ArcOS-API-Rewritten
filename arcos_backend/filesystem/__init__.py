@@ -2,6 +2,7 @@ import mimetypes
 from os import PathLike
 from pathlib import Path
 import shutil
+import os
 
 from . import mime
 
@@ -65,12 +66,12 @@ class Filesystem:
                     self._root.joinpath(destination))
 
     def copy(self, source: PathLike | str, destination: PathLike | str):
-        if Path(source).is_file():
-            shutil.copy(self._root.joinpath(source),
-                        self._root.joinpath(destination))
-        else:
-            shutil.copytree(self._root.joinpath(source),
-                            self._root.joinpath(destination))
+        try:
+          shutil.copytree(self._root.joinpath(source),
+                      self._root.joinpath(destination))
+        except NotADirectoryError:
+          shutil.copy(self._root.joinpath(source),
+                      self._root.joinpath(destination))
 
     def read(self, path: PathLike | str) -> bytes:
         return self._root.joinpath(path).read_bytes()
