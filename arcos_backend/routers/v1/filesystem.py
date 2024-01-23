@@ -77,7 +77,7 @@ def fs_dir_get(user: Annotated[models.User, Depends(auth_bearer)], path: Annotat
 
 
 @router.get('/dir/create', summary="Create the directory")
-@limiter.limit("3/second")
+@limiter.limit("10/second")
 def fs_dir_create(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
@@ -107,7 +107,7 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 
 
 @router.post('/file/write', summary="Write to the file")
-@limiter.limit("3/second")
+@limiter.limit("10/second")
 async def fs_file_write(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     file_data = await request.body()
 
@@ -122,7 +122,7 @@ async def fs_file_write(request: Request, user: Annotated[models.User, Depends(a
 
 
 @router.get('/cp', summary="Copy the file or the directory")
-@limiter.limit("3/second")
+@limiter.limit("10/second")
 def fs_time_copy(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)], target: str):
     target = base64.b64decode(target).decode('utf-8')
 
@@ -137,7 +137,7 @@ def fs_time_copy(request: Request, user: Annotated[models.User, Depends(auth_bea
 
 
 @router.get('/rm', summary="Delete the file or the directory")
-@limiter.limit("3/second")
+@limiter.limit("10/second")
 def fs_rm(request: Request, user: Annotated[models.User, Depends(auth_bearer)], path: Annotated[str, Depends(get_path)]):
     userspace = Userspace(fs, user.id)
 
@@ -148,7 +148,7 @@ def fs_rm(request: Request, user: Annotated[models.User, Depends(auth_bearer)], 
 
 
 @router.get('/rename', summary="Rename (move) the file or the directory")
-@limiter.limit("3/second")
+@limiter.limit("10/second")
 def fs_item_rename(request: Request, user: Annotated[models.User, Depends(auth_bearer)], oldpath: str, newpath: str):
     _b64 = lambda s: base64.b64decode(s).decode('utf-8')  # NOQA E731
 
