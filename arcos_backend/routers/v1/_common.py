@@ -38,6 +38,21 @@ def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotate
 
     return user
 
+def auth_bearer_param(db: Annotated[Session, Depends(get_db)], token: str) -> models.User:
+    try:
+        token = token_db.find_token(db, token)
+    except LookupError:
+        raise HTTPException(status_code=403, detail="invalid token")
+
+    if token is None:
+        raise HTTPException(status_code=403, detail="invalid token")
+
+    try:
+        user = token_db.validate_token(db, token)
+    except (ValueError, LookupError):
+        raise HTTPException(status_code=403, detail="invalid token")
+
+    return user
 
 def auth_admin(authorization: Annotated[str, Header()]):
     admin_code = cfg['security']['admin_code']

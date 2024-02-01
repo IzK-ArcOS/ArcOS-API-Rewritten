@@ -8,7 +8,7 @@ from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from ._common import auth_bearer, get_path, adapt_timestamp
+from ._common import auth_bearer, auth_bearer_param, get_path, adapt_timestamp
 from .. import EndpointTags
 from ..._shared import filesystem as fs, configuration as cfg
 from ...davult import models
@@ -105,6 +105,19 @@ def fs_file_get(response: Response, user: Annotated[models.User, Depends(auth_be
 
     return response
 
+@router.get('/file/raw', summary="Get raw file")
+def fs_file_raw(response: Response, user: Annotated[models.User,Depends(auth_bearer_param)], path: Annotated[str, Depends(get_path)]):
+    userspace = Userspace(fs, user.id)
+
+    try:
+        response.headers['Content-Type'] = userspace.get_mime(path)
+        response.body = userspace.read(path)
+    except (FileNotFoundError, ValueError):
+        raise HTTPException(status_code=404, detail="path not found")
+
+    response.status_code = 200
+
+    return response
 
 @router.post('/file/write', summary="Write to the file")
 @limiter.limit("20/second")
