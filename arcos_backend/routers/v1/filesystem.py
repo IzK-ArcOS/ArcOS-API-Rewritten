@@ -111,8 +111,10 @@ def fs_file_raw(response: Response, user: Annotated[models.User,Depends(auth_bea
 
     try:
         response.headers['Content-Type'] = userspace.get_mime(path)
+        response.headers['Accept-Ranges'] = "bytes"
+        response.headers['Connection'] = "keep-alive"
         response.body = userspace.read(path)
-    except (FileNotFoundError, ValueError):
+    except:
         raise HTTPException(status_code=404, detail="path not found")
 
     response.status_code = 200
