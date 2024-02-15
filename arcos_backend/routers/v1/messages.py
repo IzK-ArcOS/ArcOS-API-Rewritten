@@ -112,7 +112,7 @@ def messages_delete(request: Request, db: Annotated[Session, Depends(get_db)], u
     except LookupError:
         raise HTTPException(status_code=404)
 
-    if message not in user.sent_messages:
+    if message not in user.received_messages and message not in user.sent_messages:
         raise HTTPException(status_code=403)
 
     msg_db.delete_message(db, message)
