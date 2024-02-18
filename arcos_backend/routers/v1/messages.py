@@ -120,7 +120,7 @@ def messages_delete(request: Request, db: Annotated[Session, Depends(get_db)], u
 
 
 @router.get('/list', summary="Get all sent and received messages")
-def messages_list(user: Annotated[models.User, Depends(auth_bearer)], count: int = -1, offset: int = 0, descending: bool = True):
+def messages_list(user: Annotated[models.User, Depends(auth_bearer)], count: int = -1, offset: int = 0, descending: bool = True, preview_length: int = MESSAGE_PREVIEW_BODY_LEN):
     messages = list(set(user.sent_messages + user.received_messages))
     messages.sort(key=msg_db.get_message_timestamp, reverse=descending)
 
@@ -129,7 +129,7 @@ def messages_list(user: Annotated[models.User, Depends(auth_bearer)], count: int
         'data': [{
             'sender': message.sender.username,
             'receiver': message.receiver.username,
-            'partialBody': message.body[:MESSAGE_PREVIEW_BODY_LEN],
+            'partialBody': message.body[:preview_length],
             'timestamp': adapt_timestamp(message.sent_time.timestamp()),
             'replyingTo': message.replying_id,
             'id': message.id,
