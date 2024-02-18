@@ -87,7 +87,8 @@ def messages_get(db: Annotated[Session, Depends(get_db)], user: Annotated[models
     if message not in set(user.sent_messages + user.received_messages):
         raise HTTPException(status_code=403)
 
-    msg_db.mark_read(db, message)
+    if message in user.received_messages:
+      msg_db.mark_read(db, message)
 
     return {
         'valid': True,
