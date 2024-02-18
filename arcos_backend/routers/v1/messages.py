@@ -13,7 +13,7 @@ from .. import EndpointTags
 from ...davult import models, schemas
 from ...davult.crud import message as msg_db, user as user_db
 
-MESSAGE_PREVIEW_BODY_LEN = 30
+MESSAGE_PREVIEW_BODY_LEN = 80
 
 
 limiter = Limiter(key_func=get_remote_address)
