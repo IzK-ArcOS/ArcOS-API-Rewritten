@@ -1,9 +1,8 @@
 from os import PathLike
-import os
 from pathlib import Path
 
 from arcos_backend import Filesystem
-from .._shared import configuration
+
 
 # TODO make it inherit `Filesystem` instead
 class Userspace:
@@ -13,15 +12,10 @@ class Userspace:
     _root: Path
 
     def __init__(self, fs: Filesystem, id: int):
-        storage_cfg = configuration["storage"]
-        self._fs = Filesystem(
-            os.path.join(storage_cfg['root'], storage_cfg['filesystem'],str(id)),
-            os.path.join(storage_cfg['root'], storage_cfg['template']) if storage_cfg['template'] is not None else None,
-            configuration['filesystem']['userspace_size'])
-        
+        self._fs = fs
         self._id = id
         self._path_id = Path(str(id))
-        self._root = self._fs.get_root()
+        self._root = self._fs.get_root().joinpath(str(id))
 
         if not self._root.exists():
             self._root.mkdir(parents=True)
@@ -93,11 +87,7 @@ class Userspace:
         return (path := Path(path)).relative_to(path.parents[-level])
 
     def _validate(self, *paths: PathLike | str):
-        print(paths)
         for path in paths:
             requested_path = self._root.joinpath(path)
-
-            print(requested_path)
-
             if not requested_path.resolve().is_relative_to(self._root.absolute()):
                 raise ValueError("path breaks out of the filesystem")
