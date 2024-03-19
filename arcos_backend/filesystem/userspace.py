@@ -13,7 +13,12 @@ class Userspace:
     _root: Path
 
     def __init__(self, fs: Filesystem, id: int):
-        self._fs = Filesystem(os.path.join(configuration["storage"]['root'], configuration["storage"]['filesystem'],str(id)))
+        storage_cfg = configuration["storage"]
+        self._fs = Filesystem(
+            os.path.join(storage_cfg['root'], storage_cfg['filesystem'],str(id)),
+            os.path.join(storage_cfg['root'], storage_cfg['template']) if storage_cfg['template'] is not None else None,
+            configuration['filesystem']['userspace_size'])
+        
         self._id = id
         self._path_id = Path(str(id))
         self._root = self._fs.get_root().joinpath(str(id))
