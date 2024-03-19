@@ -96,5 +96,8 @@ class Userspace:
         print(paths)
         for path in paths:
             requested_path = self._root.joinpath(path)
+
+            print(requested_path)
+
             if not requested_path.resolve().is_relative_to(self._root.absolute()):
                 raise ValueError("path breaks out of the filesystem")
