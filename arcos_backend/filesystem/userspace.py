@@ -21,7 +21,7 @@ class Userspace:
         
         self._id = id
         self._path_id = Path(str(id))
-        self._root = self._fs.get_root().joinpath(str(id))
+        self._root = self._fs.get_root()
 
         if not self._root.exists():
             self._root.mkdir(parents=True)
