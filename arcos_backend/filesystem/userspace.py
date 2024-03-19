@@ -93,6 +93,7 @@ class Userspace:
         return (path := Path(path)).relative_to(path.parents[-level])
 
     def _validate(self, *paths: PathLike | str):
+        print(path)
         for path in paths:
             requested_path = self._root.joinpath(path)
             if not requested_path.resolve().is_relative_to(self._root.absolute()):
