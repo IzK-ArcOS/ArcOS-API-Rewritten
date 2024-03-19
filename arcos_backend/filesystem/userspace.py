@@ -1,8 +1,9 @@
 from os import PathLike
+import os
 from pathlib import Path
 
 from arcos_backend import Filesystem
-
+from .._shared import configuration
 
 # TODO make it inherit `Filesystem` instead
 class Userspace:
@@ -12,7 +13,7 @@ class Userspace:
     _root: Path
 
     def __init__(self, fs: Filesystem, id: int):
-        self._fs = fs
+        self._fs = Filesystem(os.path.join(configuration["storage"]['root'], configuration["storage"]['filesystem'],str(id)))
         self._id = id
         self._path_id = Path(str(id))
         self._root = self._fs.get_root().joinpath(str(id))
