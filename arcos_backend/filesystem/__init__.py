@@ -49,9 +49,6 @@ class Filesystem:
         return files, directories
 
     def write(self, path: PathLike | str, data: bytes):
-        if self.get_size('.') + len(data) > self._userspace_size:
-            raise RuntimeError("data is too large (not enough space)")
-
         self._root.joinpath(path).write_bytes(data)
 
     def remove(self, path: PathLike | str):
