@@ -42,6 +42,10 @@ class Userspace:
 
     def write(self, path: PathLike | str, data: bytes):
         self._validate(path)
+        
+        if self.get_size('.') + len(data) > self._userspace_size:
+            raise RuntimeError("data is too large (not enough space)")
+        
         self._fs.write(self._path_id.joinpath(path), data)
 
     def remove(self, path: PathLike | str):

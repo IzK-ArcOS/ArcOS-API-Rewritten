@@ -5,7 +5,7 @@ import shutil
 
 from . import mime
 
-DEFAULT_MIMETYPE = 'text/plain'  # maybe should be application/octet-stream?
+DEFAULT_MIMETYPE = "text/plain"  # maybe should be application/octet-stream?
 
 
 class Filesystem:
@@ -13,7 +13,12 @@ class Filesystem:
     _template: Path | None
     _userspace_size: int
 
-    def __init__(self, root_path: PathLike | str, template_path: PathLike | str | None, userspace_size: int):
+    def __init__(
+        self,
+        root_path: PathLike | str,
+        template_path: PathLike | str | None,
+        userspace_size: int,
+    ):
         self._root = Path(root_path)
         self._template = template_path and Path(template_path)
         self._userspace_size = userspace_size
@@ -48,9 +53,6 @@ class Filesystem:
         return files, directories
 
     def write(self, path: PathLike | str, data: bytes):
-        if self.get_size('.') + len(data) > self._userspace_size:
-            raise RuntimeError("data is too large (not enough space)")
-
         self._root.joinpath(path).write_bytes(data)
 
     def remove(self, path: PathLike | str):
@@ -61,16 +63,15 @@ class Filesystem:
             path.unlink()
 
     def move(self, source: PathLike | str, destination: PathLike | str):
-        shutil.move(self._root.joinpath(source),
-                    self._root.joinpath(destination))
+        shutil.move(self._root.joinpath(source), self._root.joinpath(destination))
 
     def copy(self, source: PathLike | str, destination: PathLike | str):
         try:
-          shutil.copytree(self._root.joinpath(source),
-                      self._root.joinpath(destination))
+            shutil.copytree(
+                self._root.joinpath(source), self._root.joinpath(destination)
+            )
         except NotADirectoryError:
-          shutil.copy(self._root.joinpath(source),
-                      self._root.joinpath(destination))
+            shutil.copy(self._root.joinpath(source), self._root.joinpath(destination))
 
     def read(self, path: PathLike | str) -> bytes:
         return self._root.joinpath(path).read_bytes()
@@ -92,7 +93,9 @@ class Filesystem:
         return mimetypes.guess_type(self._root.joinpath(path))[0] or DEFAULT_MIMETYPE
 
     def get_tree(self, path: PathLike | str):
-        return list(filter(lambda path: not path.is_dir(), self._root.joinpath(path).rglob("*")))
+        return list(
+            filter(lambda path: not path.is_dir(), self._root.joinpath(path).rglob("*"))
+        )
 
     def get_stat(self, path: PathLike | str):
         return self._root.joinpath(path).stat()
