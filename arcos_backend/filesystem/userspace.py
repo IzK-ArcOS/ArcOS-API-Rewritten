@@ -19,7 +19,7 @@ class Userspace:
 
         if not self._root.exists():
             self._root.mkdir(parents=True)
-            self.deploy_template('.')
+            self.deploy_template(".")
 
     def get_root(self):
         return self._root
@@ -42,10 +42,10 @@ class Userspace:
 
     def write(self, path: PathLike | str, data: bytes):
         self._validate(path)
-        
-        if self.get_size('.') + len(data) > self._userspace_size:
+
+        if self.get_size(".") + len(data) > self._fs._userspace_size:
             raise RuntimeError("data is too large (not enough space)")
-        
+
         self._fs.write(self._path_id.joinpath(path), data)
 
     def remove(self, path: PathLike | str):
@@ -68,7 +68,17 @@ class Userspace:
 
     def get_size(self, path: PathLike | str) -> int:
         self._validate(path)
-        return self._fs.get_size(self._path_id.joinpath(path))
+        path = self._root.joinpath(path)
+
+        if path.is_file():
+            return path.stat().st_size
+
+        directory_size = 0
+
+        for child in path.rglob("*"):
+            directory_size += child.stat().st_size
+
+        return directory_size
 
     def get_mime(self, path: PathLike | str) -> str:
         self._validate(path)
