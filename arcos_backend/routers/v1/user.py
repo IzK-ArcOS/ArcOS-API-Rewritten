@@ -9,7 +9,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from ._common import auth_basic, auth_bearer
-from .._common import get_db
+from .._common import get_db, _verify_user_new_prop
 from .. import EndpointTags
 from ..._shared import filesystem as fs
 from ..._utils import MAX_USERNAME_LEN
@@ -48,8 +48,21 @@ def user_properties(user: Annotated[models.User, Depends(auth_bearer)]):
 @router.post('/properties/update', summary="Update user properties")
 async def user_properties_update(request: Request, db: Annotated[Session, Depends(get_db)], user: Annotated[models.User, Depends(auth_bearer)]):
     try:
-        properties = json.JSONDecoder().decode((await request.body()).decode('utf-8'))
+        properties = json.loads((await request.body()).decode('utf-8'))
     except json.JSONDecodeError:
+        raise HTTPException(status_code=422)
+
+    if not isinstance(properties, dict):
+        raise HTTPException(status_code=422)
+
+    json_prop = json.loads(user.properties)
+
+    _verify_user_new_prop(json_prop, properties)
+
+    if (
+            (acc := properties.get('acc')) is None or
+            not all(map(lambda k: k in acc, ('admin', 'enabled')))
+    ):
         raise HTTPException(status_code=422)
 
     user_db.update_user_properties(db, user, properties)

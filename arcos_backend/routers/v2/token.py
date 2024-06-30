@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from .._common import get_db
 from ...davult.crud import token as token_db, user as user_db
-from ...davult.models import Token
+from ...davult.models import Token, is_enabled
 from ...davult.schemas import TokenCreate
 from ._auth import OAuth2LoginInfo, get_token
 
@@ -23,6 +23,9 @@ async def create_session(
 ) -> OAuth2LoginInfo:
     try:
         user = user_db.find_user(db, login_info.username)
+
+        if user.is_deleted or not is_enabled(user):
+            raise HTTPException(status_code=403)
 
     except LookupError:
         # we do not do 401, as by using listing of all users it is possible to know if username or password is wrong

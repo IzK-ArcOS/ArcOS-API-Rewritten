@@ -33,10 +33,11 @@ def auth_bearer(db: Annotated[Session, Depends(get_db)], authorization: Annotate
 
     try:
         user = token_db.validate_token(db, token)
-    except (ValueError, LookupError):
+    except (ValueError, LookupError, RuntimeError):
         raise HTTPException(status_code=403, detail="invalid token")
 
     return user
+
 
 def auth_bearer_param(db: Annotated[Session, Depends(get_db)], token: str) -> models.User:
     try:

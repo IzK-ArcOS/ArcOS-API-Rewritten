@@ -97,12 +97,14 @@ def set_user_state(db: Session, user: models.User, state: bool):
 
 
 def update_user_properties(db: Session, user: models.User, properties: dict, /, replace: bool = True):
-    updated_properties: dict = json.loads(user.properties)
+    if not isinstance(properties, dict):
+        raise TypeError("'properties' must be a dict")
 
     if not replace:
-        updated_properties = merge_into(updated_properties, properties, merge_lists=False)
+        updated_properties = json.loads(user.properties)
+        merge_into(updated_properties, properties, merge_lists=False)
     else:
-        updated_properties.update(properties)
+        updated_properties = properties
 
     user.properties = json.dumps(updated_properties)
     db.commit()

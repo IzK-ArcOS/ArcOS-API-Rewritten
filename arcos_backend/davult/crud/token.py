@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from . import user as user_db
 from .. import models, schemas
+from ..models import is_enabled
 
 
 def generate_token(db: Session, token: schemas.TokenCreate) -> models.Token:
@@ -50,6 +51,11 @@ def validate_token(db: Session, token: models.Token) -> models.User:
     user = db.get(models.User, token.owner_id)
 
     if user is None:
+        expire_token(db, token)
         raise LookupError("token is owned by an invalid user")
+
+    if user.is_deleted or not is_enabled(user):
+        expire_token(db, token)
+        raise RuntimeError("user is deleted or disabled")
 
     return user

@@ -58,4 +58,7 @@ class User(Base):
 
 
 def is_enabled(user: User) -> bool:
-    return json.loads(user.properties)['acc']['enabled']
+    if not isinstance((acc := json.loads(user.properties)['acc']), dict):
+        return False
+
+    return acc.get('enabled') or False
